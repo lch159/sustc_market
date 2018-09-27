@@ -197,10 +197,10 @@ class HomeBuilder {
         currentAccountPicture: new CircleAvatar(
             backgroundImage: new AssetImage("images/LOGO/4x/logo_xxxhdpi.jpg")),
         accountName: new Text(
-          "SuperLuo",
+          "UserName",
         ),
         accountEmail: new Text(
-          "super_luo@163.com",
+          "UserEmail@example.com",
         ),
         onDetailsPressed: () {},
       ),
