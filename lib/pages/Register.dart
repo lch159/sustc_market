@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 
-
-
 class RegisterPage extends StatefulWidget {
   @override
   State<StatefulWidget> createState() {
@@ -10,13 +8,8 @@ class RegisterPage extends StatefulWidget {
 }
 
 class _RegisterPageState extends State<RegisterPage> {
-  var leftRightPadding = 30.0;
-  var topBottomPadding = 4.0;
-  var textTips = new TextStyle(fontSize: 16.0, color: Colors.black);
+  var textTips = new TextStyle(fontSize: 15.0, color: Colors.black);
   var hintTips = new TextStyle(fontSize: 15.0, color: Colors.black26);
-
-  var _userPassController = new TextEditingController();
-  var _userNameController = new TextEditingController();
 
   @override
   Widget build(BuildContext context) {
@@ -39,16 +32,14 @@ class _RegisterPageState extends State<RegisterPage> {
         ),
         body: new SingleChildScrollView(
             child: new Column(
-          mainAxisSize: MainAxisSize.max,
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: <Widget>[
-            new Container(
-              margin: new EdgeInsets.fromLTRB(10.0, 30.0, 10.0, 0.0),
-              padding: new EdgeInsets.fromLTRB(leftRightPadding,
-                  topBottomPadding, leftRightPadding, topBottomPadding),
+            new InnerRow(
+              child: new Container(),
+            ),
+            new InnerRow(
               child: new TextField(
                 style: hintTips,
-                controller: _userNameController,
+                controller:  new TextEditingController(),
                 decoration: InputDecoration(
 //                  border: OutlineInputBorder(),
                   prefixIcon: Icon(Icons.person),
@@ -57,13 +48,10 @@ class _RegisterPageState extends State<RegisterPage> {
                 obscureText: true,
               ),
             ),
-            new Container(
-              margin: new EdgeInsets.fromLTRB(10.0, 5.0, 10.0, 0.0),
-              padding: new EdgeInsets.fromLTRB(leftRightPadding,
-                  topBottomPadding, leftRightPadding, topBottomPadding),
+            new InnerRow(
               child: new TextField(
                 style: hintTips,
-                controller: _userNameController,
+                controller:  new TextEditingController(),
                 decoration: InputDecoration(
 //                  border: OutlineInputBorder(),
                   prefixIcon: Icon(Icons.lock),
@@ -72,13 +60,10 @@ class _RegisterPageState extends State<RegisterPage> {
                 obscureText: true,
               ),
             ),
-            new Container(
-              margin: new EdgeInsets.fromLTRB(10.0, 5.0, 10.0, 0.0),
-              padding: new EdgeInsets.fromLTRB(leftRightPadding,
-                  topBottomPadding, leftRightPadding, topBottomPadding),
+            new InnerRow(
               child: new TextField(
                 style: hintTips,
-                controller: _userPassController,
+                controller:  new TextEditingController(),
                 decoration: InputDecoration(
 //                  border: OutlineInputBorder(),
                   prefixIcon: Icon(Icons.lock),
@@ -87,16 +72,13 @@ class _RegisterPageState extends State<RegisterPage> {
                 obscureText: true,
               ),
             ),
-            new Container(
-              margin: new EdgeInsets.fromLTRB(10.0, 5.0, 10.0, 0.0),
-              padding: new EdgeInsets.fromLTRB(leftRightPadding,
-                  topBottomPadding, leftRightPadding, topBottomPadding),
+            new InnerRow(
               child: new Row(
                 children: <Widget>[
                   new Expanded(
                     child: new TextField(
                       style: hintTips,
-                      controller: _userNameController,
+                      controller:  new TextEditingController(),
                       decoration: InputDecoration(
                           prefixIcon: Icon(Icons.mail), labelText: '请输入你的邮箱'),
                     ),
@@ -115,7 +97,7 @@ class _RegisterPageState extends State<RegisterPage> {
                         ));
                       },
                       child: new Text(
-                        '点击发送验证码',
+                        '发送验证码',
                         style: new TextStyle(
                             color: Theme.of(context).primaryColor,
                             fontSize: 13.0),
@@ -126,53 +108,88 @@ class _RegisterPageState extends State<RegisterPage> {
                 ],
               ),
             ),
-            new Container(
-              margin: new EdgeInsets.fromLTRB(10.0, 5.0, 10.0, 0.0),
-              padding: new EdgeInsets.fromLTRB(leftRightPadding,
-                  topBottomPadding, leftRightPadding, topBottomPadding),
+            new InnerRow(
               child: new Row(
                 children: <Widget>[
                   new Expanded(
                     child: new TextField(
                       style: hintTips,
-                      controller: _userNameController,
+                      controller:  new TextEditingController(),
                       decoration: InputDecoration(
                           border: OutlineInputBorder(), labelText: '输入验证码'),
                     ),
-                    flex: 4,
                   ),
-                  new Expanded(
-                    child: new Icon(Icons.refresh),
-                    flex: 1,
-                  )
                 ],
               ),
             ),
-            new Container(
-              constraints: new BoxConstraints.expand(
-                height:
-                    Theme.of(context).textTheme.display1.fontSize * 1.1 + 20,
-              ),
-              margin: new EdgeInsets.fromLTRB(10.0, 30.0, 10.0, 0.0),
-              padding: new EdgeInsets.fromLTRB(leftRightPadding,
-                  topBottomPadding, leftRightPadding, topBottomPadding),
-              child: new RaisedButton(
-                onPressed: () {
-                  Navigator.of(context).push(new MaterialPageRoute(
-                    builder: (context) {
-                      //指定跳转的页面
-                      return new RegisterPage();
-                    },
-                  ));
-                },
-                color: Colors.blue,
-                child: new Text(
-                  '注册',
-                  style: new TextStyle(color: Colors.white, fontSize: 20.0),
+            new InnerRow(
+              child: new Container(
+                constraints: new BoxConstraints.expand(
+                  height:
+                      Theme.of(context).textTheme.display1.fontSize * 1.1 + 20,
+                ),
+                child: new RaisedButton(
+                  onPressed: () {
+                    Navigator.of(context).push(new MaterialPageRoute(
+                      builder: (context) {
+                        //指定跳转的页面
+                        return new RegisterPage();
+                      },
+                    ));
+                  },
+                  color: Colors.blue,
+                  child: new Text(
+                    '注册',
+                    style: new TextStyle(color: Colors.white, fontSize: 20.0),
+                  ),
                 ),
               ),
             )
           ],
         )));
+  }
+}
+
+class InnerRow extends StatefulWidget {
+  const InnerRow({
+    Key key,
+    this.child,
+  }) : super(key: key);
+
+  final Widget child;
+
+  @override
+  _InnerRowState createState() => new _InnerRowState();
+}
+
+class _InnerRowState extends State<InnerRow> {
+  double _leftMargin = 0.0;
+  double _topMargin = 10.0;
+  double _rightMargin = 0.0;
+  double _bottomMargin = 10.0;
+
+  @override
+  Widget build(BuildContext context) {
+    // TODO: implement build
+    return new Container(
+      margin: EdgeInsets.fromLTRB(0.0, 5.0, 0.0, 5.0),
+      child: new Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: <Widget>[
+          new Expanded(
+            child: new Container(),
+            flex: 1,
+          ),
+          new Expanded(
+            child: widget.child,
+            flex: 8,
+          ),
+          new Expanded(
+            child: new Container(),
+            flex: 1,
+          ),
+        ],
+      ),
+    );
   }
 }
