@@ -46,6 +46,8 @@ flutter:
 
   assets:
     - images/LOGO/1.5x/logo_hdpi.png
+    - images/LOGO/4x/logo_xxxhdpi.jpg
+
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.io/assets-and-images/#resolution-aware.

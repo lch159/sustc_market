@@ -51,10 +51,7 @@ class _MainPageState extends State<MainPage> {
           child: new Column(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: <Widget>[
-              new Container(
-                margin: new EdgeInsets.fromLTRB(5.0, 5.0, 5.0, 5.0),
-                padding: new EdgeInsets.fromLTRB(leftRightPadding,
-                    topBottomPadding, leftRightPadding, topBottomPadding),
+              new InnerRow(
                 child: new CarouselSlider(
                     items: [1, 2, 3, 4, 5].map((i) {
                       return new Builder(
@@ -73,10 +70,7 @@ class _MainPageState extends State<MainPage> {
                     height: 150.0,
                     autoPlay: true),
               ),
-              new Container(
-                margin: new EdgeInsets.fromLTRB(5.0, 5.0, 5.0, 5.0),
-                padding: new EdgeInsets.fromLTRB(leftRightPadding,
-                    topBottomPadding, leftRightPadding, topBottomPadding),
+              new InnerRow(
                 child: new Card(
                   elevation: 2.0,
                   child: new Row(
@@ -134,11 +128,12 @@ class _MainPageState extends State<MainPage> {
                   ),
                 ),
               ),
-              new Container(
-                margin: new EdgeInsets.fromLTRB(5.0, 5.0, 5.0, 5.0),
-                padding: new EdgeInsets.fromLTRB(leftRightPadding,
-                    topBottomPadding, leftRightPadding, topBottomPadding),
-                child: new Column(),
+              new InnerRow(
+                child: new ItemCard(
+                  image: "images/LOGO/1.5x/logo_hdpi.png",
+                  title: "itemName",
+                  price: "888888",
+                ),
               ),
             ],
           ),
@@ -238,7 +233,6 @@ class HomeBuilder {
   }
 }
 
-
 class InnerRow extends StatefulWidget {
   const InnerRow({
     Key key,
@@ -260,7 +254,7 @@ class _InnerRowState extends State<InnerRow> {
   @override
   Widget build(BuildContext context) {
     // TODO: implement build
-    return new Card(
+    return new Container(
       margin: EdgeInsets.fromLTRB(0.0, 5.0, 0.0, 5.0),
       child: new Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -271,7 +265,7 @@ class _InnerRowState extends State<InnerRow> {
           ),
           new Expanded(
             child: widget.child,
-            flex: 10,
+            flex: 30,
           ),
           new Expanded(
             child: new Container(),
@@ -283,22 +277,80 @@ class _InnerRowState extends State<InnerRow> {
   }
 }
 
-class ProductionCard extends StatefulWidget{
-  const ProductionCard({
+class ItemCard extends StatefulWidget {
+  const ItemCard({
     Key key,
     this.child,
+    this.image,
+//    this.owner,
+    this.price,
+    this.title,
   }) : super(key: key);
-final Widget child;
+  final Widget child;
+  final String image;
+  final String title;
+  final String price;
 
-@override
-_ProductionCardState createState() => new _ProductionCardState();
+//  final Widget owner;
+
+  @override
+  _ItemCardState createState() => new _ItemCardState();
 }
 
-class _ProductionCardState extends State<ProductionCard>{
+class _ItemCardState extends State<ItemCard> {
   @override
   Widget build(BuildContext context) {
     // TODO: implement build
+    return new Container(
+        height: 144.0,
+        child: new Card(
+          child: new Row(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: <Widget>[
+              new Expanded(
+                child: new Container(
+                  child: new Image.asset(widget.image),
+                ),
+                flex: 3,
+              ),
+              new Expanded(
+                child: new Column(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: <Widget>[
+                    new Expanded(
+                      child: new Container(
+                          child: new Text(
+                        widget.title,
+                        style: new TextStyle(
+                            fontWeight: FontWeight.w300,
+                            fontSize: 20.0,
+                            color: Colors.black),
+                      )),
+                      flex: 1,
+                    ),
+                    new Expanded(
+                      child: new Container(
+                          child: new Text(
+                        "￥" + widget.price,
+                        style: new TextStyle(
+                            fontWeight: FontWeight.w800,
+                            fontSize: 25.0,
+                            color: Colors.red),
+                      )),
+                      flex: 1,
+                    ),
+                  ],
+                ),
+                flex: 3,
+              ),
+              new Expanded(
+                child: new Container(
 
+                ),
+                flex: 2,
+              ),
+            ],
+          ),
+        ));
   }
-
 }
