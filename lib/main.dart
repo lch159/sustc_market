@@ -237,3 +237,68 @@ class HomeBuilder {
     ]);
   }
 }
+
+
+class InnerRow extends StatefulWidget {
+  const InnerRow({
+    Key key,
+    this.child,
+  }) : super(key: key);
+
+  final Widget child;
+
+  @override
+  _InnerRowState createState() => new _InnerRowState();
+}
+
+class _InnerRowState extends State<InnerRow> {
+  double _leftMargin = 0.0;
+  double _topMargin = 10.0;
+  double _rightMargin = 0.0;
+  double _bottomMargin = 10.0;
+
+  @override
+  Widget build(BuildContext context) {
+    // TODO: implement build
+    return new Card(
+      margin: EdgeInsets.fromLTRB(0.0, 5.0, 0.0, 5.0),
+      child: new Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: <Widget>[
+          new Expanded(
+            child: new Container(),
+            flex: 1,
+          ),
+          new Expanded(
+            child: widget.child,
+            flex: 10,
+          ),
+          new Expanded(
+            child: new Container(),
+            flex: 1,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class ProductionCard extends StatefulWidget{
+  const ProductionCard({
+    Key key,
+    this.child,
+  }) : super(key: key);
+final Widget child;
+
+@override
+_ProductionCardState createState() => new _ProductionCardState();
+}
+
+class _ProductionCardState extends State<ProductionCard>{
+  @override
+  Widget build(BuildContext context) {
+    // TODO: implement build
+
+  }
+
+}
