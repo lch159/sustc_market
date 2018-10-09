@@ -13,9 +13,6 @@ class _LoginPageState extends State<LoginPage> {
   var hintTips = new TextStyle(fontSize: 15.0, color: Colors.black26);
   static const logoPath = "images/LOGO/1.5x/logo_hdpi.png";
 
-  var _userPassController = new TextEditingController();
-  var _userNameController = new TextEditingController();
-
   var isRemember = false;
   var isAuto = false;
 

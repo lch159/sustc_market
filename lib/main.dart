@@ -17,11 +17,8 @@ class MainPage extends StatefulWidget {
 }
 
 class _MainPageState extends State<MainPage> {
-  bool isCheck = false;
-  var leftRightPadding = 15.0;
-  var topBottomPadding = 5.0;
-  var textTips = new TextStyle(fontSize: 16.0, color: Colors.black);
-  var hintTips = new TextStyle(fontSize: 15.0, color: Colors.black26);
+  int tabIndex = 0;
+  var bodies = [new HomePage(), new NeighborPage(), new MessagePage()];
 
   @override
   Widget build(BuildContext context) {
@@ -31,7 +28,6 @@ class _MainPageState extends State<MainPage> {
           new IconButton(
             icon: new Icon(Icons.error_outline),
             color: Colors.white,
-            tooltip: 'Anno',
             onPressed: () {
               Navigator.of(context).push(new MaterialPageRoute(
                 builder: (context) {
@@ -46,6 +42,67 @@ class _MainPageState extends State<MainPage> {
       drawer: new Drawer(
         child: HomeBuilder.homeDrawer(),
       ),
+      body: bodies[tabIndex],
+      bottomNavigationBar: new BottomNavigationBar(
+        items: [
+          BottomNavigationBarItem(
+              icon: Icon(
+                Icons.home,
+              ),
+              title: Text(
+                '主页',
+              )),
+          BottomNavigationBarItem(
+            icon: Icon(
+              Icons.people,
+            ),
+            title: Text(
+              '附近',
+            ),
+          ),
+          BottomNavigationBarItem(
+              icon: Icon(
+                Icons.chat,
+              ),
+              title: Text(
+                '消息',
+              )),
+        ],
+        type: BottomNavigationBarType.fixed,
+        currentIndex: tabIndex,
+        onTap: (index) {
+          setState(() {
+            tabIndex = index;
+          });
+        },
+      ),
+      floatingActionButton: HomeBuilder.homeFloatingButton(),
+    );
+  }
+}
+
+class NeighborPage extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return new Scaffold(
+      body: new Center(child: new Text("附近")),
+    );
+  }
+}
+
+class MessagePage extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return new Scaffold(
+      body: new Center(child: new Text("消息")),
+    );
+  }
+}
+
+class HomePage extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return new Scaffold(
       body: new SingleChildScrollView(
         child: new Center(
           child: new Column(
@@ -59,7 +116,10 @@ class _MainPageState extends State<MainPage> {
                           return new Container(
                               width: MediaQuery.of(context).size.width,
                               margin: new EdgeInsets.symmetric(horizontal: 5.0),
-                              decoration: new BoxDecoration(color: Colors.grey),
+                              decoration: new BoxDecoration(
+                                  borderRadius:
+                                      BorderRadius.all(Radius.circular(5.0)),
+                                  color: Colors.blue),
                               child: new Text(
                                 'text $i',
                                 style: new TextStyle(fontSize: 16.0),
@@ -72,117 +132,82 @@ class _MainPageState extends State<MainPage> {
               ),
               new InnerRow(
                 child: new Card(
-                  elevation: 2.0,
-                  child: new Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: <Widget>[
-                      new Expanded(
-                        child: new Column(
+                    elevation: 2.0,
+                    child: new Column(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: <Widget>[
+                        new Row(
                           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                           children: <Widget>[
-                            new RaisedButton(
-                                color: Colors.white12,
-                                onPressed: null,
-                                child: new Text("分类")),
-                            new RaisedButton(
-                                color: Colors.white12,
-                                onPressed: null,
-                                child: new Text("分类")),
+                            new InnerButton(
+                              text: new Text("类别"),
+                            ),
+                            new InnerButton(
+                              text: new Text("类别"),
+                            ),
+                            new InnerButton(
+                              text: new Text("类别"),
+                            ),
+                            new InnerButton(
+                              text: new Text("类别"),
+                            ),
                           ],
                         ),
-                        flex: 1,
-                      ),
-                      new Expanded(
-                        child: new Column(
+                        new Row(
                           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                           children: <Widget>[
-                            new RaisedButton(
-                                color: Colors.white12,
-                                onPressed: null,
-                                child: new Text("分类")),
-                            new RaisedButton(
-                                color: Colors.white12,
-                                onPressed: null,
-                                child: new Text("分类")),
+                            new InnerButton(
+                              text: new Text("类别"),
+                            ),
+                            new InnerButton(
+                              text: new Text("类别"),
+                            ),
+                            new InnerButton(
+                              text: new Text("类别"),
+                            ),
+                            new InnerButton(
+                              text: new Text("类别"),
+                            ),
                           ],
                         ),
-                        flex: 1,
-                      ),
-                      new Expanded(
-                        child: new Column(
-                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                          children: <Widget>[
-                            new RaisedButton(
-                                color: Colors.white12,
-                                onPressed: null,
-                                child: new Text("分类")),
-                            new RaisedButton(
-                                color: Colors.white12,
-                                onPressed: null,
-                                child: new Text("分类")),
-                          ],
-                        ),
-                        flex: 1,
-                      )
-                    ],
-                  ),
-                ),
+                      ],
+                    )),
               ),
               new InnerRow(
-                child: new ItemCard(
-                  image: "images/LOGO/1.5x/logo_hdpi.png",
-                  title: "itemName",
-                  price: "888888",
-                ),
+                child: new ItemRow(),
+              ),
+              new InnerRow(
+                child: new ItemRow(),
+              ),
+              new InnerRow(
+                child: new ItemRow(),
+              ),
+              new InnerRow(
+                child: new ItemRow(),
+              ),
+              new InnerRow(
+                child: new ItemRow(),
+              ),
+              new InnerRow(
+                child: new ItemRow(),
               ),
             ],
           ),
         ),
       ),
-      bottomNavigationBar: HomeBuilder.homeBottomBar(),
-      floatingActionButton: HomeBuilder.homeFloatingButton(),
     );
   }
 }
 
 class HomeBuilder {
-  static Widget homeProductions() {
-    for (int i = 0; i < 10; i++) {}
-  }
-
   //浮动按钮
   static Widget homeFloatingButton() {
     return new FloatingActionButton(
       child: new Icon(Icons.add),
-      onPressed: null,
+      elevation: 7.0,
+      highlightElevation: 14.0,
+      onPressed: () {},
     );
-  }
-
-  //底部导航栏
-  static Widget homeBottomBar() {
-    return new BottomNavigationBar(items: [
-      BottomNavigationBarItem(
-          icon: Icon(
-            Icons.home,
-          ),
-          title: Text(
-            '主页',
-          )),
-      BottomNavigationBarItem(
-          icon: Icon(
-            Icons.people,
-          ),
-          title: Text(
-            '附近',
-          )),
-      BottomNavigationBarItem(
-          icon: Icon(
-            Icons.chat,
-          ),
-          title: Text(
-            '消息',
-          )),
-    ]);
   }
 
   //侧边栏
@@ -233,13 +258,14 @@ class HomeBuilder {
   }
 }
 
+//内部空间中行设定
 class InnerRow extends StatefulWidget {
   const InnerRow({
     Key key,
     this.child,
   }) : super(key: key);
 
-  final Widget child;
+  final Widget child; //分类ICON
 
   @override
   _InnerRowState createState() => new _InnerRowState();
@@ -277,80 +303,139 @@ class _InnerRowState extends State<InnerRow> {
   }
 }
 
+//内部分类圆形控件
+class InnerButton extends StatefulWidget {
+  const InnerButton({Key key, this.child, this.text}) : super(key: key);
+  final Widget child;
+  final Widget text;
+
+  @override
+  _InnerButtonState createState() => new _InnerButtonState();
+}
+
+class _InnerButtonState extends State<InnerButton> {
+  @override
+  Widget build(BuildContext context) {
+    // TODO: implement build
+    return new Column(
+      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      children: <Widget>[
+        new FlatButton(
+          shape: CircleBorder(),
+          color: Colors.blue,
+          onPressed: () {},
+          child: new Container(),
+        ),
+        widget.text
+      ],
+    );
+  }
+}
+
 class ItemCard extends StatefulWidget {
   const ItemCard({
     Key key,
     this.child,
     this.image,
-//    this.owner,
-    this.price,
     this.title,
+    this.price,
   }) : super(key: key);
   final Widget child;
   final String image;
   final String title;
   final String price;
 
-//  final Widget owner;
-
   @override
   _ItemCardState createState() => new _ItemCardState();
 }
 
+//商品卡
 class _ItemCardState extends State<ItemCard> {
   @override
   Widget build(BuildContext context) {
     // TODO: implement build
-    return new Container(
-        height: 144.0,
-        child: new Card(
-          child: new Row(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: <Widget>[
-              new Expanded(
-                child: new Container(
-                  child: new Image.asset(widget.image),
-                ),
-                flex: 3,
-              ),
-              new Expanded(
-                child: new Column(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: <Widget>[
-                    new Expanded(
-                      child: new Container(
-                          child: new Text(
-                        widget.title,
-                        style: new TextStyle(
-                            fontWeight: FontWeight.w300,
-                            fontSize: 20.0,
-                            color: Colors.black),
-                      )),
-                      flex: 1,
-                    ),
-                    new Expanded(
-                      child: new Container(
-                          child: new Text(
-                        "￥" + widget.price,
-                        style: new TextStyle(
-                            fontWeight: FontWeight.w800,
-                            fontSize: 25.0,
-                            color: Colors.red),
-                      )),
-                      flex: 1,
-                    ),
-                  ],
-                ),
-                flex: 3,
-              ),
-              new Expanded(
-                child: new Container(
-
-                ),
-                flex: 2,
-              ),
-            ],
+    return new Card(
+      elevation: 2.0,
+      child: new Column(
+        children: <Widget>[
+          new Expanded(
+            child: new Container(
+//                      color: Colors.black12,
+              child: new Image.asset(widget.image),
+            ),
+            flex: 4,
           ),
-        ));
+          new Expanded(
+            child: new Container(
+              padding: EdgeInsets.fromLTRB(10.0, 0.0, 10.0, 0.0),
+              child: new Text(
+                widget.title,
+                style: new TextStyle(
+                    fontSize: 18.0,
+                    fontWeight: FontWeight.w300,
+                    color: Colors.black),
+              ),
+            ),
+            flex: 1,
+          ),
+          new Expanded(
+            child: new Container(
+              padding: EdgeInsets.fromLTRB(10.0, 0.0, 10.0, 0.0),
+              alignment: Alignment.center,
+              child: new Text(
+                "￥" + widget.price,
+                style: new TextStyle(
+                    fontSize: 20.0,
+                    fontWeight: FontWeight.w900,
+                    color: Colors.red),
+              ),
+            ),
+            flex: 1,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+//商品行
+class ItemRow extends StatefulWidget {
+  const ItemRow({
+    Key key,
+    this.child,
+  }) : super(key: key);
+  final Widget child;
+
+  @override
+  _ItemRowState createState() => new _ItemRowState();
+}
+
+class _ItemRowState extends State<ItemRow> {
+  @override
+  Widget build(BuildContext context) {
+    // TODO: implement build
+    return new Container(
+      height: 220.0,
+      child: new Row(
+        children: <Widget>[
+          new Expanded(
+            child: new ItemCard(
+              image: "images/LOGO/1.5x/logo_hdpi.png",
+              title: "itemNammmmmmmmmmmmmmmmme",
+              price: "888888",
+            ),
+            flex: 1,
+          ),
+          new Expanded(
+            child: new ItemCard(
+              image: "images/LOGO/1.5x/logo_hdpi.png",
+              title: "itemNammmmmmmmmmmmmmmmme",
+              price: "888888",
+            ),
+            flex: 1,
+          ),
+        ],
+      ),
+    );
   }
 }
