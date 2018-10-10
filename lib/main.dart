@@ -84,8 +84,129 @@ class _MainPageState extends State<MainPage> {
 class NeighborPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return new Scaffold(
-      body: new Center(child: new Text("附近")),
+    return new Center(
+      child: new ListView.builder(
+        itemBuilder: (context, index) {
+          return new InnerRow(
+            child: new NeighborCard(
+              accountPicture: "",
+              name: "UserName",
+              description: "Description here "
+                  "",
+              image1: "images/LOGO/1.5x/logo_hdpi.png",
+              image2: "images/LOGO/1.5x/logo_hdpi.png",
+              image3: "images/LOGO/1.5x/logo_hdpi.png",
+            ),
+          );
+        },
+        itemCount: 20,
+      ),
+    );
+  }
+}
+
+class NeighborCard extends StatefulWidget {
+  const NeighborCard({
+    Key key,
+    this.child,
+    this.name,
+    this.accountPicture,
+    this.description,
+    this.image1,
+    this.image2,
+    this.image3,
+  }) : super(key: key);
+  final Widget child;
+  final String image1;
+  final String image2;
+  final String image3;
+  final String name;
+  final String description;
+  final String accountPicture;
+
+  @override
+  _NeighborCard createState() => new _NeighborCard();
+}
+
+//商品卡
+class _NeighborCard extends State<NeighborCard> {
+  @override
+  Widget build(BuildContext context) {
+    // TODO: implement build
+    return new Card(
+      child: new Column(
+        children: <Widget>[
+          new Row(
+            children: <Widget>[
+              new Padding(
+                padding: EdgeInsets.only(
+                  left: 20.0,
+                  right: 20.0,
+                ),
+                child: new Container(
+                    decoration: new BoxDecoration(
+                        borderRadius: BorderRadius.all(Radius.circular(90.0)),
+                        color: Colors.blue),
+                    width: 50.0,
+                    height: 50.0,
+                    child: new Icon(
+                      Icons.person_outline,
+                      color: Colors.white,
+                    )),
+              ),
+              new Text(
+                widget.name,
+                style: new TextStyle(
+                    fontSize: 18.0,
+                    fontWeight: FontWeight.w400,
+                    color: Colors.black),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              )
+            ],
+          ),
+          new Divider(),
+          new Align(
+            alignment: Alignment.centerLeft,
+            child: new Padding(
+              padding: EdgeInsets.only(left: 20.0, right: 20.0),
+              child: new Text(
+                widget.description,
+                style: new TextStyle(
+                    fontSize: 18.0,
+                    fontWeight: FontWeight.w400,
+                    color: Colors.black),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ),
+          new Divider(),
+          new Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: <Widget>[
+              new Expanded(
+                  child: new Container(
+                width: 72.0,
+                height: 72.0,
+                child: new Image.asset(widget.image1),
+              )),
+              new Expanded(
+                  child: new Container(
+                width: 72.0,
+                height: 72.0,
+                child: new Image.asset(widget.image2),
+              )),
+              new Expanded(
+                  child: new Container(
+                width: 72.0,
+                height: 72.0,
+                child: new Image.asset(widget.image3),
+              )),
+            ],
+          ),
+        ],
+      ),
     );
   }
 }
@@ -93,8 +214,31 @@ class NeighborPage extends StatelessWidget {
 class MessagePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return new Scaffold(
-      body: new Center(child: new Text("消息")),
+    return new ListView.builder(
+      itemBuilder: (context, index) {
+        return new InnerRow(
+          child: new Card(
+            child: new ListTile(
+              title: new Text("UserName"),
+              subtitle: new Text("Message Content"),
+              //之前显示icon
+              leading: new Container(
+                  decoration: new BoxDecoration(
+                      borderRadius: BorderRadius.all(Radius.circular(90.0)),
+                      color: Colors.blue),
+                  width: 50.0,
+                  height: 50.0,
+                  child: new Icon(
+                    Icons.person_outline,
+                    color: Colors.white,
+                  ),),
+              trailing: new Text("18:18",style: new TextStyle(color: Colors.grey),),
+              //之后显示checkBox
+            ),
+          ),
+        );
+      },
+      itemCount: 20,
     );
   }
 }
@@ -102,97 +246,100 @@ class MessagePage extends StatelessWidget {
 class HomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return new Scaffold(
-      body: new SingleChildScrollView(
-        child: new Center(
-          child: new Column(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: <Widget>[
-              new InnerRow(
-                child: new CarouselSlider(
-                    items: [1, 2, 3, 4, 5].map((i) {
-                      return new Builder(
-                        builder: (BuildContext context) {
-                          return new Container(
-                              width: MediaQuery.of(context).size.width,
-                              margin: new EdgeInsets.symmetric(horizontal: 5.0),
-                              decoration: new BoxDecoration(
-                                  borderRadius:
-                                      BorderRadius.all(Radius.circular(5.0)),
-                                  color: Colors.blue),
-                              child: new Text(
-                                'text $i',
-                                style: new TextStyle(fontSize: 16.0),
-                              ));
-                        },
-                      );
-                    }).toList(),
-                    height: 150.0,
-                    autoPlay: true),
-              ),
-              new InnerRow(
-                child: new Card(
-                    elevation: 2.0,
-                    child: new Column(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: <Widget>[
-                        new Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                          children: <Widget>[
-                            new InnerButton(
-                              text: new Text("类别"),
-                            ),
-                            new InnerButton(
-                              text: new Text("类别"),
-                            ),
-                            new InnerButton(
-                              text: new Text("类别"),
-                            ),
-                            new InnerButton(
-                              text: new Text("类别"),
-                            ),
-                          ],
-                        ),
-                        new Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                          children: <Widget>[
-                            new InnerButton(
-                              text: new Text("类别"),
-                            ),
-                            new InnerButton(
-                              text: new Text("类别"),
-                            ),
-                            new InnerButton(
-                              text: new Text("类别"),
-                            ),
-                            new InnerButton(
-                              text: new Text("类别"),
-                            ),
-                          ],
-                        ),
-                      ],
-                    )),
-              ),
-              new InnerRow(
-                child: new ItemRow(),
-              ),
-              new InnerRow(
-                child: new ItemRow(),
-              ),
-              new InnerRow(
-                child: new ItemRow(),
-              ),
-              new InnerRow(
-                child: new ItemRow(),
-              ),
-              new InnerRow(
-                child: new ItemRow(),
-              ),
-              new InnerRow(
-                child: new ItemRow(),
-              ),
-            ],
-          ),
+    return new SingleChildScrollView(
+      child: new Center(
+        child: new Column(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: <Widget>[
+            new InnerRow(
+              child: new CarouselSlider(
+                  items: [1, 2, 3, 4, 5].map((i) {
+                    return new Builder(
+                      builder: (BuildContext context) {
+                        return new Container(
+                            width: MediaQuery.of(context).size.width,
+                            margin: new EdgeInsets.symmetric(horizontal: 5.0),
+                            decoration: new BoxDecoration(
+                                borderRadius:
+                                    BorderRadius.all(Radius.circular(5.0)),
+                                color: Colors.blue),
+                            child: new Text(
+                              'text $i',
+                              style: new TextStyle(fontSize: 16.0),
+                            ));
+                      },
+                    );
+                  }).toList(),
+                  height: 150.0,
+                  autoPlay: true),
+            ),
+            new InnerRow(
+              child: new Card(
+                  elevation: 2.0,
+                  child: new Column(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: <Widget>[
+                      new Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: <Widget>[
+                          new InnerButton(
+                            text: new Text("类别"),
+                          ),
+                          new InnerButton(
+                            text: new Text("类别"),
+                          ),
+                          new InnerButton(
+                            text: new Text("类别"),
+                          ),
+                          new InnerButton(
+                            text: new Text("类别"),
+                          ),
+                        ],
+                      ),
+                      new Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: <Widget>[
+                          new InnerButton(
+                            text: new Text("类别"),
+                          ),
+                          new InnerButton(
+                            text: new Text("类别"),
+                          ),
+                          new InnerButton(
+                            text: new Text("类别"),
+                          ),
+                          new InnerButton(
+                            text: new Text("类别"),
+                          ),
+                        ],
+                      ),
+                    ],
+                  )),
+            ),
+//            new ListView.builder(itemBuilder: (context, index) {
+//              return new InnerRow(child: new ItemRow(),);
+//            },
+//              itemCount: 20,),
+            new Divider(),
+            new InnerRow(
+              child: new ItemRow(),
+            ),
+            new InnerRow(
+              child: new ItemRow(),
+            ),
+            new InnerRow(
+              child: new ItemRow(),
+            ),
+            new InnerRow(
+              child: new ItemRow(),
+            ),
+            new InnerRow(
+              child: new ItemRow(),
+            ),
+            new InnerRow(
+              child: new ItemRow(),
+            ),
+          ],
         ),
       ),
     );
@@ -281,7 +428,7 @@ class _InnerRowState extends State<InnerRow> {
   Widget build(BuildContext context) {
     // TODO: implement build
     return new Container(
-      margin: EdgeInsets.fromLTRB(0.0, 5.0, 0.0, 5.0),
+      margin: EdgeInsets.only(top: 5.0, bottom: 5.0),
       child: new Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: <Widget>[
@@ -366,29 +513,31 @@ class _ItemCardState extends State<ItemCard> {
             flex: 4,
           ),
           new Expanded(
-            child: new Container(
-              padding: EdgeInsets.fromLTRB(10.0, 0.0, 10.0, 0.0),
+            child: new Padding(
+              padding: EdgeInsets.only(left: 10.0, right: 10.0),
               child: new Text(
                 widget.title,
                 style: new TextStyle(
                     fontSize: 18.0,
                     fontWeight: FontWeight.w300,
                     color: Colors.black),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
               ),
             ),
             flex: 1,
           ),
           new Expanded(
             child: new Container(
-              padding: EdgeInsets.fromLTRB(10.0, 0.0, 10.0, 0.0),
+              padding: EdgeInsets.only(left: 10.0, right: 10.0),
               alignment: Alignment.center,
-              child: new Text(
-                "￥" + widget.price,
-                style: new TextStyle(
-                    fontSize: 20.0,
-                    fontWeight: FontWeight.w900,
-                    color: Colors.red),
-              ),
+              child: new Text("￥" + widget.price,
+                  style: new TextStyle(
+                      fontSize: 20.0,
+                      fontWeight: FontWeight.w900,
+                      color: Colors.red),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis),
             ),
             flex: 1,
           ),
@@ -421,7 +570,7 @@ class _ItemRowState extends State<ItemRow> {
           new Expanded(
             child: new ItemCard(
               image: "images/LOGO/1.5x/logo_hdpi.png",
-              title: "itemNammmmmmmmmmmmmmmmme",
+              title: "itemNammmmmmmmmmmmmmmmmmmme",
               price: "888888",
             ),
             flex: 1,
