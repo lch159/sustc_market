@@ -304,16 +304,20 @@ class HomePage extends StatelessWidget {
                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                         children: <Widget>[
                           InnerButton(
-                            text: Text('类别'),
+                            text: Text('书本'),
+                            child: Icon(Icons.book),
                           ),
                           InnerButton(
-                            text: Text('类别'),
+                            text: Text('食品'),
+                            child: Icon(Icons.fastfood),
                           ),
                           InnerButton(
-                            text: Text('类别'),
+                            text: Text('工具'),
+                            child: Icon(Icons.build),
                           ),
                           InnerButton(
-                            text: Text('类别'),
+                            text: Text('电子产品'),
+                            child: Icon(Icons.phonelink),
                           ),
                         ],
                       ),
@@ -321,16 +325,22 @@ class HomePage extends StatelessWidget {
                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                         children: <Widget>[
                           InnerButton(
-                            text: Text('类别'),
+                            text: Text('化妆品'),
+                            child: Icon(Icons.local_florist),
                           ),
                           InnerButton(
-                            text: Text('类别'),
+                            text: Text('服饰'),
+                            child: Icon(Icons.accessibility),
                           ),
                           InnerButton(
-                            text: Text('类别'),
+                            text: Text('信息资源'),
+                            child: Icon(Icons.compare_arrows),
                           ),
                           InnerButton(
-                            text: Text('类别'),
+                            text: Text('集收'),
+                            child: Icon(
+                              Icons.pan_tool,
+                            ),
                           ),
                         ],
                       ),
@@ -344,16 +354,104 @@ class HomePage extends StatelessWidget {
 
             Divider(),
             InnerRow(
-              child: ItemRow(),
+              child: Container(
+                height: 220.0,
+                child: Row(
+                  children: <Widget>[
+                    Expanded(
+                      child: ItemCard(
+                        image: 'images/tempItems/p1.jpg',
+                        title: '出顾家北手把手教你雅思写作',
+                        price: '20',
+                      ),
+                      flex: 1,
+                    ),
+                    Expanded(
+                      child: ItemCard(
+                        image: 'images/tempItems/p2.png',
+                        title: '收一个USB转串口数据线',
+                        price: '面议',
+                      ),
+                      flex: 1,
+                    ),
+                  ],
+                ),
+              ),
             ),
             InnerRow(
-              child: ItemRow(),
+              child: Container(
+                height: 220.0,
+                child: Row(
+                  children: <Widget>[
+                    Expanded(
+                      child: ItemCard(
+                        image: 'images/tempItems/p3.jpg',
+                        title: '出外星人17r3 配置如图',
+                        price: '面议',
+                      ),
+                      flex: 1,
+                    ),
+                    Expanded(
+                      child: ItemCard(
+                        image: 'images/tempItems/p5.jpg',
+                        title: '收这本书',
+                        price: '40',
+                      ),
+                      flex: 1,
+                    ),
+                  ],
+                ),
+              ),
             ),
             InnerRow(
-              child: ItemRow(),
+              child: Container(
+                height: 220.0,
+                child: Row(
+                  children: <Widget>[
+                    Expanded(
+                      child: ItemCard(
+                        image: 'images/tempItems/p6.jpg',
+                        title: '出一瓶这个',
+                        price: '45',
+                      ),
+                      flex: 1,
+                    ),
+                    Expanded(
+                      child: ItemCard(
+                        image: 'images/tempItems/p7.png',
+                        title: '试收一颗这个型号的纽扣电池',
+                        price: '10',
+                      ),
+                      flex: 1,
+                    ),
+                  ],
+                ),
+              ),
             ),
             InnerRow(
-              child: ItemRow(),
+              child: Container(
+                height: 220.0,
+                child: Row(
+                  children: <Widget>[
+                    Expanded(
+                      child: ItemCard(
+                        image: 'images/tempItems/p8.jpg',
+                        title: '代购YPL瘦腿裤薄款180秋冬加厚款210',
+                        price: '180',
+                      ),
+                      flex: 1,
+                    ),
+                    Expanded(
+                      child: ItemCard(
+                        image: 'images/LOGO/1.5x/logo_hdpi.png',
+                        title: 'itemNam',
+                        price: '888888',
+                      ),
+                      flex: 1,
+                    ),
+                  ],
+                ),
+              ),
             ),
             InnerRow(
               child: ItemRow(),
@@ -471,12 +569,12 @@ class _InnerButtonState extends State<InnerButton> {
       children: <Widget>[
         FlatButton(
           shape: CircleBorder(),
-          color: Colors.blue,
+          color: Colors.white,
           onPressed: () {
             Navigator.push(
                 context, MaterialPageRoute(builder: (context) => SelectPage()));
           },
-          child: Container(),
+          child: widget.child,
         ),
         widget.text
       ],
@@ -508,45 +606,54 @@ class _ItemCardState extends State<ItemCard> {
     // TODO: implement build
     return Card(
       elevation: 2.0,
-      child: Column(
-        children: <Widget>[
-          Expanded(
-            child: Container(
-                      color: Colors.black12,
-              child: Image.asset(widget.image,fit: BoxFit.fill,),
-            ),
-            flex: 4,
-          ),
-          Expanded(
-            child: Padding(
-              padding: EdgeInsets.only(left: 10.0, right: 10.0),
-              child: Text(
-                widget.title,
-                style: TextStyle(
-                    fontSize: 18.0,
-                    fontWeight: FontWeight.w300,
-                    color: Colors.black),
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
+      child: FlatButton(
+        child: Column(
+          children: <Widget>[
+            Expanded(
+              child: Container(
+                color: Colors.black12,
+                child: Image.asset(
+                  widget.image,
+                  fit: BoxFit.fill,
+                ),
               ),
+              flex: 4,
             ),
-            flex: 1,
-          ),
-          Expanded(
-            child: Container(
-              padding: EdgeInsets.only(left: 10.0, right: 10.0),
-              alignment: Alignment.center,
-              child: Text('￥' + widget.price,
+            Expanded(
+              child: Padding(
+                padding: EdgeInsets.only(left: 10.0, right: 10.0),
+                child: Text(
+                  widget.title,
                   style: TextStyle(
-                      fontSize: 20.0,
-                      fontWeight: FontWeight.w900,
-                      color: Colors.red),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis),
+                      fontSize: 18.0,
+                      fontWeight: FontWeight.w300,
+                      color: Colors.black),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              flex: 1,
             ),
-            flex: 1,
-          ),
-        ],
+            Expanded(
+              child: Container(
+                padding: EdgeInsets.only(left: 10.0, right: 10.0),
+                alignment: Alignment.center,
+                child: Text('￥' + widget.price,
+                    style: TextStyle(
+                        fontSize: 20.0,
+                        fontWeight: FontWeight.w900,
+                        color: Colors.red),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis),
+              ),
+              flex: 1,
+            ),
+          ],
+        ),
+        onPressed: () {
+          Navigator.push(
+              context, MaterialPageRoute(builder: (context) => SelectPage()));
+        },
       ),
     );
   }
@@ -575,7 +682,7 @@ class _ItemRowState extends State<ItemRow> {
           Expanded(
             child: ItemCard(
               image: 'images/LOGO/1.5x/logo_hdpi.png',
-              title: 'itemNammmmmmmmmmmmmmmmmmmme',
+              title: 'itemNam',
               price: '888888',
             ),
             flex: 1,
@@ -583,7 +690,7 @@ class _ItemRowState extends State<ItemRow> {
           Expanded(
             child: ItemCard(
               image: 'images/LOGO/1.5x/logo_hdpi.png',
-              title: 'itemNammmmmmmmmmmmmmmmme',
+              title: 'itemNam',
               price: '888888',
             ),
             flex: 1,

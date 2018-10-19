@@ -11,7 +11,7 @@ class LoginPage extends StatefulWidget {
 class _LoginPageState extends State<LoginPage> {
   var textTips = TextStyle(fontSize: 15.0, color: Colors.black);
   var hintTips = TextStyle(fontSize: 15.0, color: Colors.black26);
-  static const logoPath = 'images/LOGO/1.5x/logo_hdpi.png ';
+  static const logoPath = 'images/LOGO/1.5x/logo_hdpi.png';
 
   var isRemember = false;
   var isAuto = false;
