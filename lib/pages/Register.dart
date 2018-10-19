@@ -3,150 +3,151 @@ import 'package:flutter/material.dart';
 class RegisterPage extends StatefulWidget {
   @override
   State<StatefulWidget> createState() {
-    return new _RegisterPageState();
+    return   _RegisterPageState();
   }
 }
 
 class _RegisterPageState extends State<RegisterPage> {
-  var textTips = new TextStyle(fontSize: 15.0, color: Colors.black);
-  var hintTips = new TextStyle(fontSize: 15.0, color: Colors.black26);
+  var textTips =   TextStyle(fontSize: 15.0, color: Colors.black);
+  var hintTips =   TextStyle(fontSize: 15.0, color: Colors.black26);
 
   @override
   Widget build(BuildContext context) {
-    return new Scaffold(
-        appBar: new AppBar(
-          leading: new IconButton(
-            icon: new Icon(Icons.arrow_back),
-            tooltip: 'Navigation menu',
-            onPressed: () {
-              Navigator.pop(context);
-            },
-          ),
-          title: new Text('注册'),
-          actions: <Widget>[
-            new IconButton(
-                icon: new Icon(Icons.error_outline),
-                tooltip: 'Anno',
-                onPressed: null),
-          ],
+    return   Scaffold(
+      appBar:   AppBar(
+        leading:   IconButton(
+          icon:   Icon(Icons.arrow_back),
+          tooltip: 'Navigation menu',
+          onPressed: () {
+            Navigator.pop(context);
+          },
         ),
-        body: new SingleChildScrollView(
-            child: new Column(
-          children: <Widget>[
-            new InnerRow(
-              child: new Container(),
-            ),
-            new InnerRow(
-              child: new TextField(
-                style: hintTips,
-                controller:  new TextEditingController(),
-                decoration: InputDecoration(
+        title:   Text('注册'),
+        actions: <Widget>[
+            IconButton(
+              icon:   Icon(Icons.error_outline),
+              tooltip: 'Anno',
+              onPressed: null),
+        ],
+      ),
+      body:   SingleChildScrollView(
+          child:   Column(
+        children: <Widget>[
+            InnerRow(
+            child:   Container(),
+          ),
+            InnerRow(
+            child:   TextField(
+              style: textTips,
+              controller:   TextEditingController(),
+              decoration: InputDecoration(
 //                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.person),
-                  labelText: '请输入你的用户名',
-                ),
-                obscureText: true,
+                prefixIcon: Icon(Icons.person),
+                labelText: '请输入你的用户名',
               ),
+
             ),
-            new InnerRow(
-              child: new TextField(
-                style: hintTips,
-                controller:  new TextEditingController(),
-                decoration: InputDecoration(
+          ),
+            InnerRow(
+            child:   TextField(
+              style: textTips,
+              controller:   TextEditingController(),
+              decoration: InputDecoration(
 //                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.lock),
-                  labelText: '请输入你的密码',
-                ),
-                obscureText: true,
+                prefixIcon: Icon(Icons.lock),
+                labelText: '请输入你的密码',
               ),
+              obscureText: true,
             ),
-            new InnerRow(
-              child: new TextField(
-                style: hintTips,
-                controller:  new TextEditingController(),
-                decoration: InputDecoration(
+          ),
+            InnerRow(
+            child:   TextField(
+              style: textTips,
+              controller:   TextEditingController(),
+              decoration: InputDecoration(
 //                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.lock),
-                  labelText: '重复输入密码',
-                ),
-                obscureText: true,
+                prefixIcon: Icon(Icons.lock),
+                labelText: '重复输入密码',
               ),
+              obscureText: true,
             ),
-            new InnerRow(
-              child: new Row(
-                children: <Widget>[
-                  new Expanded(
-                    child: new TextField(
-                      style: hintTips,
-                      controller:  new TextEditingController(),
-                      decoration: InputDecoration(
-                          prefixIcon: Icon(Icons.mail), labelText: '请输入你的邮箱'),
-                    ),
-                    flex: 2,
+          ),
+            InnerRow(
+            child:   Row(
+              children: <Widget>[
+                  Expanded(
+                  child:   TextField(
+                    style: textTips,
+                    controller:   TextEditingController(),
+                    decoration: InputDecoration(
+                        prefixIcon: Icon(Icons.mail), labelText: '请输入你的邮箱'),
                   ),
-                  new Expanded(
-                    child: new OutlineButton(
-                      borderSide:
-                          new BorderSide(color: Theme.of(context).primaryColor),
-                      onPressed: () {
-                        Navigator.of(context).push(new MaterialPageRoute(
-                          builder: (context) {
-                            //指定跳转的页面
-                            return new RegisterPage();
-                          },
-                        ));
-                      },
-                      child: new Text(
-                        '发送验证码',
-                        style: new TextStyle(
-                            color: Theme.of(context).primaryColor,
-                            fontSize: 13.0),
-                      ),
-                    ),
-                    flex: 1,
-                  )
-                ],
-              ),
-            ),
-            new InnerRow(
-              child: new Row(
-                children: <Widget>[
-                  new Expanded(
-                    child: new TextField(
-                      style: hintTips,
-                      controller:  new TextEditingController(),
-                      decoration: InputDecoration(
-                          border: OutlineInputBorder(), labelText: '输入验证码'),
+                  flex: 2,
+                ),
+                  Expanded(
+                  child:   OutlineButton(
+                    borderSide:
+                          BorderSide(color: Theme.of(context).primaryColor),
+                    onPressed: () {
+                      Navigator.of(context).push(  MaterialPageRoute(
+                        builder: (context) {
+                          //指定跳转的页面
+                          return   RegisterPage();
+                        },
+                      ));
+                    },
+                    child:   Text(
+                      '发送验证码',
+                      style:   TextStyle(
+                          color: Theme.of(context).primaryColor,
+                          fontSize: 13.0),
                     ),
                   ),
-                ],
-              ),
+                  flex: 1,
+                )
+              ],
             ),
-            new InnerRow(
-              child: new Container(
-                constraints: new BoxConstraints.expand(
-                  height:
-                      Theme.of(context).textTheme.display1.fontSize * 1.1 + 20,
-                ),
-                child: new RaisedButton(
-                  onPressed: () {
-                    Navigator.of(context).push(new MaterialPageRoute(
-                      builder: (context) {
-                        //指定跳转的页面
-                        return new RegisterPage();
-                      },
-                    ));
-                  },
-                  color: Colors.blue,
-                  child: new Text(
-                    '注册',
-                    style: new TextStyle(color: Colors.white, fontSize: 20.0),
+          ),
+            InnerRow(
+            child:   Row(
+              children: <Widget>[
+                  Expanded(
+                  child:   TextField(
+                    style: hintTips,
+                    controller:   TextEditingController(),
+                    decoration: InputDecoration(
+                        border: OutlineInputBorder(), labelText: '输入验证码'),
                   ),
                 ),
+              ],
+            ),
+          ),
+            InnerRow(
+            child:   Container(
+              constraints:   BoxConstraints.expand(
+                height:
+                    Theme.of(context).textTheme.display1.fontSize * 1.1 + 20,
               ),
-            )
-          ],
-        )));
+              child:   RaisedButton(
+                onPressed: () {
+                  Navigator.of(context).push(  MaterialPageRoute(
+                    builder: (context) {
+                      //指定跳转的页面
+                      return   RegisterPage();
+                    },
+                  ));
+                },
+                color: Colors.blue,
+                child:   Text(
+                  '注册',
+                  style:   TextStyle(color: Colors.white, fontSize: 20.0),
+                ),
+              ),
+            ),
+          )
+        ],
+      )),
+    );
   }
 }
 
@@ -159,7 +160,7 @@ class InnerRow extends StatefulWidget {
   final Widget child;
 
   @override
-  _InnerRowState createState() => new _InnerRowState();
+  _InnerRowState createState() =>   _InnerRowState();
 }
 
 class _InnerRowState extends State<InnerRow> {
@@ -171,21 +172,21 @@ class _InnerRowState extends State<InnerRow> {
   @override
   Widget build(BuildContext context) {
     // TODO: implement build
-    return new Container(
+    return   Container(
       margin: EdgeInsets.fromLTRB(0.0, 5.0, 0.0, 5.0),
-      child: new Row(
+      child:   Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: <Widget>[
-          new Expanded(
-            child: new Container(),
+            Expanded(
+            child:   Container(),
             flex: 1,
           ),
-          new Expanded(
+            Expanded(
             child: widget.child,
             flex: 8,
           ),
-          new Expanded(
-            child: new Container(),
+            Expanded(
+            child:   Container(),
             flex: 1,
           ),
         ],

@@ -4,72 +4,71 @@ import 'package:sustc_market/pages/Register.dart';
 class LoginPage extends StatefulWidget {
   @override
   State<StatefulWidget> createState() {
-    return new _LoginPageState();
+    return _LoginPageState();
   }
 }
 
 class _LoginPageState extends State<LoginPage> {
-  var textTips = new TextStyle(fontSize: 15.0, color: Colors.black);
-  var hintTips = new TextStyle(fontSize: 15.0, color: Colors.black26);
-  static const logoPath = "images/LOGO/1.5x/logo_hdpi.png";
+  var textTips = TextStyle(fontSize: 15.0, color: Colors.black);
+  var hintTips = TextStyle(fontSize: 15.0, color: Colors.black26);
+  static const logoPath = 'images/LOGO/1.5x/logo_hdpi.png ';
 
   var isRemember = false;
   var isAuto = false;
 
   @override
   Widget build(BuildContext context) {
-    return new Scaffold(
-      appBar: new AppBar(
-        leading: new IconButton(
-          icon: new Icon(Icons.arrow_back),
+    return Scaffold(
+      appBar: AppBar(
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back),
           tooltip: 'Navigation menu',
           color: Colors.white,
           onPressed: () {
             Navigator.pop(context);
           },
         ),
-        title: new Text('登录'),
+        title: Text('登录'),
         actions: <Widget>[
-          new IconButton(
-            icon: new Icon(Icons.error_outline),
+          IconButton(
+            icon: Icon(Icons.error_outline),
             color: Colors.white,
             tooltip: 'Anno',
             onPressed: null,
           ),
         ],
       ),
-      body: new SingleChildScrollView(
-          child: new Column(
+      body: SingleChildScrollView(
+          child: Column(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: <Widget>[
-          new InnerRow(
-            child: new Container(
+          InnerRow(
+            child: Container(
               alignment: Alignment.center,
               width: 72.0,
               height: 72.0,
-              margin: new EdgeInsets.fromLTRB(10.0, 50.0, 10.0, 10.0),
-              child: new Image.asset(
+              margin: EdgeInsets.fromLTRB(10.0, 50.0, 10.0, 10.0),
+              child: Image.asset(
                 logoPath,
                 fit: BoxFit.cover,
               ),
             ),
           ),
-          new InnerRow(
-            child: new TextField(
-              style: hintTips,
-              controller:  new TextEditingController(),
+          InnerRow(
+            child: TextField(
+              style: textTips,
+              controller: TextEditingController(),
               decoration: InputDecoration(
 //                    border: OutlineInputBorder(),
                 prefixIcon: Icon(Icons.person),
                 labelText: '请输入你的用户名或邮箱',
               ),
-              obscureText: true,
             ),
           ),
-          new InnerRow(
-            child: new TextField(
+          InnerRow(
+            child: TextField(
               style: hintTips,
-              controller:  new TextEditingController(),
+              controller: TextEditingController(),
               decoration: InputDecoration(
 //                    border: OutlineInputBorder(),
                 prefixIcon: Icon(Icons.lock),
@@ -78,76 +77,76 @@ class _LoginPageState extends State<LoginPage> {
               obscureText: true,
             ),
           ),
-          new InnerRow(
-            child: new Row(
+          InnerRow(
+            child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: <Widget>[
-                new Row(
+                Row(
                   children: <Widget>[
-                    new Checkbox(
+                    Checkbox(
                         value: isRemember,
                         onChanged: (bool) {
                           setState(() {
                             isRemember = bool;
                           });
                         }),
-                    new Text('记住密码'),
+                    Text('记住密码'),
                   ],
                 ),
-                new Row(
+                Row(
                   children: <Widget>[
-                    new Checkbox(
+                    Checkbox(
                         value: isAuto,
                         onChanged: (bool) {
                           setState(() {
                             isAuto = bool;
                           });
                         }),
-                    new Text('自动登录'),
+                    Text('自动登录'),
                   ],
                 ),
               ],
             ),
           ),
-          new InnerRow(
-              child: new Container(
-            constraints: new BoxConstraints.expand(
+          InnerRow(
+              child: Container(
+            constraints: BoxConstraints.expand(
               height: Theme.of(context).textTheme.display1.fontSize * 1.1 + 10,
             ),
-            child: new RaisedButton(
+            child: RaisedButton(
               color: Colors.green,
               onPressed: () {
-                Navigator.of(context).push(new MaterialPageRoute(
+                Navigator.of(context).push(MaterialPageRoute(
                   builder: (context) {
                     //指定跳转的页面
-                    return new RegisterPage();
+                    return RegisterPage();
                   },
                 ));
               },
-              child: new Text(
+              child: Text(
                 '登录',
-                style: new TextStyle(color: Colors.white, fontSize: 20.0),
+                style: TextStyle(color: Colors.white, fontSize: 20.0),
               ),
             ),
           )),
-          new InnerRow(
-              child: new Container(
-            constraints: new BoxConstraints.expand(
+          InnerRow(
+              child: Container(
+            constraints: BoxConstraints.expand(
               height: Theme.of(context).textTheme.display1.fontSize * 1.1 + 10,
             ),
-            child: new OutlineButton(
-              borderSide: new BorderSide(color: Theme.of(context).primaryColor),
+            child: OutlineButton(
+              borderSide: BorderSide(color: Theme.of(context).primaryColor),
               onPressed: () {
-                Navigator.of(context).push(new MaterialPageRoute(
+                Navigator.of(context).push(MaterialPageRoute(
                   builder: (context) {
                     //指定跳转的页面
-                    return new RegisterPage();
+                    return RegisterPage();
                   },
                 ));
               },
-              child: new Text(
+              child: Text(
                 '注册',
-                style: new TextStyle(
+                style: TextStyle(
                     color: Theme.of(context).primaryColor, fontSize: 20.0),
               ),
             ),
@@ -168,7 +167,7 @@ class InnerRow extends StatefulWidget {
   final Widget child;
 
   @override
-  _InnerRowState createState() => new _InnerRowState();
+  _InnerRowState createState() => _InnerRowState();
 }
 
 class _InnerRowState extends State<InnerRow> {
@@ -180,21 +179,21 @@ class _InnerRowState extends State<InnerRow> {
   @override
   Widget build(BuildContext context) {
     // TODO: implement build
-    return new Container(
+    return Container(
       margin: EdgeInsets.fromLTRB(0.0, 5.0, 0.0, 5.0),
-      child: new Row(
+      child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: <Widget>[
-          new Expanded(
-            child: new Container(),
+          Expanded(
+            child: Container(),
             flex: 1,
           ),
-          new Expanded(
+          Expanded(
             child: widget.child,
             flex: 8,
           ),
-          new Expanded(
-            child: new Container(),
+          Expanded(
+            child: Container(),
             flex: 1,
           ),
         ],

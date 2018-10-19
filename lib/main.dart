@@ -1,49 +1,58 @@
 import 'package:flutter/material.dart';
-import 'pages/Login.dart';
+import 'package:sustc_market/pages/Search.dart';
+import 'package:sustc_market/pages/Login.dart';
 import 'package:carousel_slider/carousel_slider.dart';
+import 'package:sustc_market/pages/Select.dart';
 
 void main() {
-  runApp(new MaterialApp(
+  runApp(MaterialApp(
     title: 'SUSTech Market',
-    home: new MainPage(),
+    home: MainPage(),
   ));
 }
 
 class MainPage extends StatefulWidget {
   @override
   State<StatefulWidget> createState() {
-    return new _MainPageState();
+    return _MainPageState();
   }
 }
 
 class _MainPageState extends State<MainPage> {
   int tabIndex = 0;
-  var bodies = [new HomePage(), new NeighborPage(), new MessagePage()];
+  var bodies = [HomePage(), NeighborPage(), MessagePage()];
 
   @override
   Widget build(BuildContext context) {
-    return new Scaffold(
-      appBar: new AppBar(
-        actions: <Widget>[
-          new IconButton(
-            icon: new Icon(Icons.error_outline),
-            color: Colors.white,
-            onPressed: () {
-              Navigator.of(context).push(new MaterialPageRoute(
-                builder: (context) {
-                  //指定跳转的页面
-                  return new LoginPage();
+    return Scaffold(
+      appBar: AppBar(
+        title: Padding(
+          padding: const EdgeInsets.only(top: 10.0, bottom: 10.0),
+          child: TextField(
+            controller: TextEditingController(),
+            decoration: InputDecoration(
+              filled: true,
+              fillColor: Colors.white,
+              contentPadding: EdgeInsets.all(10.0),
+              border: OutlineInputBorder(
+                  borderRadius: BorderRadius.all(Radius.circular(90.0))),
+              prefixIcon: IconButton(
+                icon: Icon(Icons.search),
+                color: Colors.grey,
+                onPressed: () {
+                  Navigator.push(context,
+                      MaterialPageRoute(builder: (context) => SearchPage()));
                 },
-              ));
-            },
+              ),
+            ),
           ),
-        ],
+        ),
       ),
-      drawer: new Drawer(
+      drawer: Drawer(
         child: HomeBuilder.homeDrawer(),
       ),
       body: bodies[tabIndex],
-      bottomNavigationBar: new BottomNavigationBar(
+      bottomNavigationBar: BottomNavigationBar(
         items: [
           BottomNavigationBarItem(
               icon: Icon(
@@ -76,7 +85,15 @@ class _MainPageState extends State<MainPage> {
           });
         },
       ),
-      floatingActionButton: HomeBuilder.homeFloatingButton(),
+      floatingActionButton: FloatingActionButton(
+        child: Icon(Icons.add),
+        elevation: 7.0,
+        highlightElevation: 14.0,
+        onPressed: () {
+          Navigator.push(
+              context, MaterialPageRoute(builder: (context) => LoginPage()));
+        },
+      ),
     );
   }
 }
@@ -84,18 +101,18 @@ class _MainPageState extends State<MainPage> {
 class NeighborPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return new Center(
-      child: new ListView.builder(
+    return Center(
+      child: ListView.builder(
         itemBuilder: (context, index) {
-          return new InnerRow(
-            child: new NeighborCard(
-              accountPicture: "",
-              name: "UserName",
-              description: "Description here "
-                  "",
-              image1: "images/LOGO/1.5x/logo_hdpi.png",
-              image2: "images/LOGO/1.5x/logo_hdpi.png",
-              image3: "images/LOGO/1.5x/logo_hdpi.png",
+          return InnerRow(
+            child: NeighborCard(
+              accountPicture: '',
+              name: 'UserName',
+              description: 'Description here '
+                  '',
+              image1: 'images/LOGO/1.5x/logo_hdpi.png',
+              image2: 'images/LOGO/1.5x/logo_hdpi.png',
+              image3: 'images/LOGO/1.5x/logo_hdpi.png',
             ),
           );
         },
@@ -125,38 +142,37 @@ class NeighborCard extends StatefulWidget {
   final String accountPicture;
 
   @override
-  _NeighborCard createState() => new _NeighborCard();
+  _NeighborCard createState() => _NeighborCard();
 }
 
-//商品卡
 class _NeighborCard extends State<NeighborCard> {
   @override
   Widget build(BuildContext context) {
     // TODO: implement build
-    return new Card(
-      child: new Column(
+    return Card(
+      child: Column(
         children: <Widget>[
-          new Row(
+          Row(
             children: <Widget>[
-              new Padding(
+              Padding(
                 padding: EdgeInsets.only(
                   left: 20.0,
                   right: 20.0,
                 ),
-                child: new Container(
-                    decoration: new BoxDecoration(
+                child: Container(
+                    decoration: BoxDecoration(
                         borderRadius: BorderRadius.all(Radius.circular(90.0)),
                         color: Colors.blue),
                     width: 50.0,
                     height: 50.0,
-                    child: new Icon(
+                    child: Icon(
                       Icons.person_outline,
                       color: Colors.white,
                     )),
               ),
-              new Text(
+              Text(
                 widget.name,
-                style: new TextStyle(
+                style: TextStyle(
                     fontSize: 18.0,
                     fontWeight: FontWeight.w400,
                     color: Colors.black),
@@ -165,14 +181,14 @@ class _NeighborCard extends State<NeighborCard> {
               )
             ],
           ),
-          new Divider(),
-          new Align(
+          Divider(),
+          Align(
             alignment: Alignment.centerLeft,
-            child: new Padding(
+            child: Padding(
               padding: EdgeInsets.only(left: 20.0, right: 20.0),
-              child: new Text(
+              child: Text(
                 widget.description,
-                style: new TextStyle(
+                style: TextStyle(
                     fontSize: 18.0,
                     fontWeight: FontWeight.w400,
                     color: Colors.black),
@@ -181,27 +197,27 @@ class _NeighborCard extends State<NeighborCard> {
               ),
             ),
           ),
-          new Divider(),
-          new Row(
+          Divider(),
+          Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: <Widget>[
-              new Expanded(
-                  child: new Container(
+              Expanded(
+                  child: Container(
                 width: 72.0,
                 height: 72.0,
-                child: new Image.asset(widget.image1),
+                child: Image.asset(widget.image1),
               )),
-              new Expanded(
-                  child: new Container(
+              Expanded(
+                  child: Container(
                 width: 72.0,
                 height: 72.0,
-                child: new Image.asset(widget.image2),
+                child: Image.asset(widget.image2),
               )),
-              new Expanded(
-                  child: new Container(
+              Expanded(
+                  child: Container(
                 width: 72.0,
                 height: 72.0,
-                child: new Image.asset(widget.image3),
+                child: Image.asset(widget.image3),
               )),
             ],
           ),
@@ -214,25 +230,29 @@ class _NeighborCard extends State<NeighborCard> {
 class MessagePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return new ListView.builder(
+    return ListView.builder(
       itemBuilder: (context, index) {
-        return new InnerRow(
-          child: new Card(
-            child: new ListTile(
-              title: new Text("UserName"),
-              subtitle: new Text("Message Content"),
+        return InnerRow(
+          child: Card(
+            child: ListTile(
+              title: Text('UserName'),
+              subtitle: Text('Message Content'),
               //之前显示icon
-              leading: new Container(
-                  decoration: new BoxDecoration(
-                      borderRadius: BorderRadius.all(Radius.circular(90.0)),
-                      color: Colors.blue),
-                  width: 50.0,
-                  height: 50.0,
-                  child: new Icon(
-                    Icons.person_outline,
-                    color: Colors.white,
-                  ),),
-              trailing: new Text("18:18",style: new TextStyle(color: Colors.grey),),
+              leading: Container(
+                decoration: BoxDecoration(
+                    borderRadius: BorderRadius.all(Radius.circular(90.0)),
+                    color: Colors.blue),
+                width: 50.0,
+                height: 50.0,
+                child: Icon(
+                  Icons.person_outline,
+                  color: Colors.white,
+                ),
+              ),
+              trailing: Text(
+                '18:18',
+                style: TextStyle(color: Colors.grey),
+              ),
               //之后显示checkBox
             ),
           ),
@@ -246,98 +266,100 @@ class MessagePage extends StatelessWidget {
 class HomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return new SingleChildScrollView(
-      child: new Center(
-        child: new Column(
+    return SingleChildScrollView(
+      child: Center(
+        child: Column(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: <Widget>[
-            new InnerRow(
-              child: new CarouselSlider(
+            InnerRow(
+              child: CarouselSlider(
                   items: [1, 2, 3, 4, 5].map((i) {
-                    return new Builder(
+                    return Builder(
                       builder: (BuildContext context) {
-                        return new Container(
-                            width: MediaQuery.of(context).size.width,
-                            margin: new EdgeInsets.symmetric(horizontal: 5.0),
-                            decoration: new BoxDecoration(
-                                borderRadius:
-                                    BorderRadius.all(Radius.circular(5.0)),
-                                color: Colors.blue),
-                            child: new Text(
-                              'text $i',
-                              style: new TextStyle(fontSize: 16.0),
-                            ));
+                        return Container(
+                          width: MediaQuery.of(context).size.width,
+                          margin: EdgeInsets.symmetric(horizontal: 5.0),
+                          decoration: BoxDecoration(
+                              borderRadius:
+                                  BorderRadius.all(Radius.circular(5.0)),
+                              color: Colors.blue),
+                          child: Image.asset(
+                            "images/Advertisements/ad$i.jpg",
+                            fit: BoxFit.fill,
+                          ),
+                        );
                       },
                     );
                   }).toList(),
                   height: 150.0,
                   autoPlay: true),
             ),
-            new InnerRow(
-              child: new Card(
+            InnerRow(
+              child: Card(
                   elevation: 2.0,
-                  child: new Column(
+                  child: Column(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: <Widget>[
-                      new Row(
+                      Row(
                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                         children: <Widget>[
-                          new InnerButton(
-                            text: new Text("类别"),
+                          InnerButton(
+                            text: Text('类别'),
                           ),
-                          new InnerButton(
-                            text: new Text("类别"),
+                          InnerButton(
+                            text: Text('类别'),
                           ),
-                          new InnerButton(
-                            text: new Text("类别"),
+                          InnerButton(
+                            text: Text('类别'),
                           ),
-                          new InnerButton(
-                            text: new Text("类别"),
+                          InnerButton(
+                            text: Text('类别'),
                           ),
                         ],
                       ),
-                      new Row(
+                      Row(
                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                         children: <Widget>[
-                          new InnerButton(
-                            text: new Text("类别"),
+                          InnerButton(
+                            text: Text('类别'),
                           ),
-                          new InnerButton(
-                            text: new Text("类别"),
+                          InnerButton(
+                            text: Text('类别'),
                           ),
-                          new InnerButton(
-                            text: new Text("类别"),
+                          InnerButton(
+                            text: Text('类别'),
                           ),
-                          new InnerButton(
-                            text: new Text("类别"),
+                          InnerButton(
+                            text: Text('类别'),
                           ),
                         ],
                       ),
                     ],
                   )),
             ),
-//            new ListView.builder(itemBuilder: (context, index) {
-//              return new InnerRow(child: new ItemRow(),);
+//              ListView.builder(itemBuilder: (context, index) {
+//              return   InnerRow(child:   ItemRow(),);
 //            },
 //              itemCount: 20,),
-            new Divider(),
-            new InnerRow(
-              child: new ItemRow(),
+
+            Divider(),
+            InnerRow(
+              child: ItemRow(),
             ),
-            new InnerRow(
-              child: new ItemRow(),
+            InnerRow(
+              child: ItemRow(),
             ),
-            new InnerRow(
-              child: new ItemRow(),
+            InnerRow(
+              child: ItemRow(),
             ),
-            new InnerRow(
-              child: new ItemRow(),
+            InnerRow(
+              child: ItemRow(),
             ),
-            new InnerRow(
-              child: new ItemRow(),
+            InnerRow(
+              child: ItemRow(),
             ),
-            new InnerRow(
-              child: new ItemRow(),
+            InnerRow(
+              child: ItemRow(),
             ),
           ],
         ),
@@ -347,59 +369,44 @@ class HomePage extends StatelessWidget {
 }
 
 class HomeBuilder {
-  //浮动按钮
-  static Widget homeFloatingButton() {
-    return new FloatingActionButton(
-      child: new Icon(Icons.add),
-      elevation: 7.0,
-      highlightElevation: 14.0,
-      onPressed: () {},
-    );
-  }
-
   //侧边栏
   static Widget homeDrawer() {
-    return new ListView(padding: const EdgeInsets.only(), children: <Widget>[
-      new UserAccountsDrawerHeader(
-        currentAccountPicture: new CircleAvatar(
-            backgroundImage: new AssetImage("images/LOGO/4x/logo_xxxhdpi.jpg")),
-        accountName: new Text(
-          "UserName",
+    return ListView(padding: const EdgeInsets.only(), children: <Widget>[
+      UserAccountsDrawerHeader(
+        currentAccountPicture: CircleAvatar(
+            backgroundImage: AssetImage('images/LOGO/4x/logo_xxxhdpi.jpg')),
+        accountName: Text(
+          'UserName',
         ),
-        accountEmail: new Text(
-          "UserEmail@example.com",
-        ),
-        onDetailsPressed: () {},
-      ),
-      new ClipRect(
-        child: new ListTile(
-          leading:
-              new CircleAvatar(child: new Icon(Icons.perm_contact_calendar)),
-          title: new Text('我的信息'),
-          onTap: () => {},
+        accountEmail: Text(
+          'UserEmail@example.com',
         ),
       ),
-      new ListTile(
-        leading: new CircleAvatar(child: new Icon(Icons.add_shopping_cart)),
-        title: new Text('我的交易'),
-        subtitle: new Text("我买的和我卖的"),
+      ClipRect(
+        child: ListTile(
+          leading: CircleAvatar(child: Icon(Icons.perm_contact_calendar)),
+          title: Text('我的信息'),
+          onTap: () {},
+        ),
+      ),
+      ListTile(
+        leading: CircleAvatar(child: Icon(Icons.add_shopping_cart)),
+        title: Text('我的交易'),
+        subtitle: Text('我买的和我卖的'),
+        onTap: () {},
+      ),
+      ListTile(
+        leading: CircleAvatar(child: Icon(Icons.settings)),
+        title: Text('设置'),
         onTap: () => {},
       ),
-      new ListTile(
-        leading: new CircleAvatar(child: new Icon(Icons.settings)),
-        title: new Text('设置'),
-        onTap: () => {},
-      ),
-      new AboutListTile(
-        icon: new CircleAvatar(child: new Text("Ab")),
-        child: new Text("关于"),
-        applicationName: "Test",
-        applicationVersion: "1.0",
-        applicationLegalese: "applicationLegalese",
-        aboutBoxChildren: <Widget>[
-          new Text("BoxChildren"),
-          new Text("box child 2")
-        ],
+      AboutListTile(
+        icon: CircleAvatar(child: Text('Ab')),
+        child: Text('关于'),
+        applicationName: 'Test',
+        applicationVersion: '1.0',
+        applicationLegalese: 'applicationLegalese',
+        aboutBoxChildren: <Widget>[Text('BoxChildren'), Text('box child 2')],
       ),
     ]);
   }
@@ -415,33 +422,28 @@ class InnerRow extends StatefulWidget {
   final Widget child; //分类ICON
 
   @override
-  _InnerRowState createState() => new _InnerRowState();
+  _InnerRowState createState() => _InnerRowState();
 }
 
 class _InnerRowState extends State<InnerRow> {
-  double _leftMargin = 0.0;
-  double _topMargin = 10.0;
-  double _rightMargin = 0.0;
-  double _bottomMargin = 10.0;
-
   @override
   Widget build(BuildContext context) {
     // TODO: implement build
-    return new Container(
+    return Container(
       margin: EdgeInsets.only(top: 5.0, bottom: 5.0),
-      child: new Row(
+      child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: <Widget>[
-          new Expanded(
-            child: new Container(),
+          Expanded(
+            child: Container(),
             flex: 1,
           ),
-          new Expanded(
+          Expanded(
             child: widget.child,
             flex: 30,
           ),
-          new Expanded(
-            child: new Container(),
+          Expanded(
+            child: Container(),
             flex: 1,
           ),
         ],
@@ -457,21 +459,24 @@ class InnerButton extends StatefulWidget {
   final Widget text;
 
   @override
-  _InnerButtonState createState() => new _InnerButtonState();
+  _InnerButtonState createState() => _InnerButtonState();
 }
 
 class _InnerButtonState extends State<InnerButton> {
   @override
   Widget build(BuildContext context) {
     // TODO: implement build
-    return new Column(
+    return Column(
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: <Widget>[
-        new FlatButton(
+        FlatButton(
           shape: CircleBorder(),
           color: Colors.blue,
-          onPressed: () {},
-          child: new Container(),
+          onPressed: () {
+            Navigator.push(
+                context, MaterialPageRoute(builder: (context) => SelectPage()));
+          },
+          child: Container(),
         ),
         widget.text
       ],
@@ -493,7 +498,7 @@ class ItemCard extends StatefulWidget {
   final String price;
 
   @override
-  _ItemCardState createState() => new _ItemCardState();
+  _ItemCardState createState() => _ItemCardState();
 }
 
 //商品卡
@@ -501,23 +506,23 @@ class _ItemCardState extends State<ItemCard> {
   @override
   Widget build(BuildContext context) {
     // TODO: implement build
-    return new Card(
+    return Card(
       elevation: 2.0,
-      child: new Column(
+      child: Column(
         children: <Widget>[
-          new Expanded(
-            child: new Container(
-//                      color: Colors.black12,
-              child: new Image.asset(widget.image),
+          Expanded(
+            child: Container(
+                      color: Colors.black12,
+              child: Image.asset(widget.image,fit: BoxFit.fill,),
             ),
             flex: 4,
           ),
-          new Expanded(
-            child: new Padding(
+          Expanded(
+            child: Padding(
               padding: EdgeInsets.only(left: 10.0, right: 10.0),
-              child: new Text(
+              child: Text(
                 widget.title,
-                style: new TextStyle(
+                style: TextStyle(
                     fontSize: 18.0,
                     fontWeight: FontWeight.w300,
                     color: Colors.black),
@@ -527,12 +532,12 @@ class _ItemCardState extends State<ItemCard> {
             ),
             flex: 1,
           ),
-          new Expanded(
-            child: new Container(
+          Expanded(
+            child: Container(
               padding: EdgeInsets.only(left: 10.0, right: 10.0),
               alignment: Alignment.center,
-              child: new Text("￥" + widget.price,
-                  style: new TextStyle(
+              child: Text('￥' + widget.price,
+                  style: TextStyle(
                       fontSize: 20.0,
                       fontWeight: FontWeight.w900,
                       color: Colors.red),
@@ -556,30 +561,30 @@ class ItemRow extends StatefulWidget {
   final Widget child;
 
   @override
-  _ItemRowState createState() => new _ItemRowState();
+  _ItemRowState createState() => _ItemRowState();
 }
 
 class _ItemRowState extends State<ItemRow> {
   @override
   Widget build(BuildContext context) {
     // TODO: implement build
-    return new Container(
+    return Container(
       height: 220.0,
-      child: new Row(
+      child: Row(
         children: <Widget>[
-          new Expanded(
-            child: new ItemCard(
-              image: "images/LOGO/1.5x/logo_hdpi.png",
-              title: "itemNammmmmmmmmmmmmmmmmmmme",
-              price: "888888",
+          Expanded(
+            child: ItemCard(
+              image: 'images/LOGO/1.5x/logo_hdpi.png',
+              title: 'itemNammmmmmmmmmmmmmmmmmmme',
+              price: '888888',
             ),
             flex: 1,
           ),
-          new Expanded(
-            child: new ItemCard(
-              image: "images/LOGO/1.5x/logo_hdpi.png",
-              title: "itemNammmmmmmmmmmmmmmmme",
-              price: "888888",
+          Expanded(
+            child: ItemCard(
+              image: 'images/LOGO/1.5x/logo_hdpi.png',
+              title: 'itemNammmmmmmmmmmmmmmmme',
+              price: '888888',
             ),
             flex: 1,
           ),

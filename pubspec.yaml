@@ -47,6 +47,24 @@ flutter:
   assets:
     - images/LOGO/1.5x/logo_hdpi.png
     - images/LOGO/4x/logo_xxxhdpi.jpg
+    - images/Advertisements/ad1.jpg
+    - images/Advertisements/ad2.jpg
+    - images/Advertisements/ad3.jpg
+    - images/Advertisements/ad4.jpg
+    - images/Advertisements/ad5.jpg
+    - images/tempItems/p1.jpg
+    - images/tempItems/p2.png
+    - images/tempItems/p3.jpg
+    - images/tempItems/p4.jpg
+    - images/tempItems/p5.jpg
+    - images/tempItems/p6.jpg
+    - images/tempItems/p7.png
+    - images/tempItems/p8.jpg
+    - images/tempItems/p9.jpg
+
+
+
+
 
 
   # An image asset can refer to one or more resolution-specific "variants", see
