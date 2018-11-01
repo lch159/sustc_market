@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:sustc_market/pages/Production.dart';
+
 
 class SelectPage extends StatefulWidget {
   @override
@@ -454,76 +456,85 @@ class _ProductionCardState extends State<ProductionCard> {
   Widget build(BuildContext context) {
     return Column(
       children: <Widget>[
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: <Widget>[
-            Container(
-              width: 96.0,
-              height: 96.0,
-              child: Image.asset(
-                widget.imagePath,
-                fit: BoxFit.fill,
-              ),
-            ),
-            Expanded(
-              child: Padding(
-                padding: EdgeInsets.only(left: 10.0, right: 5.0),
-                child: Column(
-                  children: <Widget>[
-                    Align(
-                      alignment: FractionalOffset.topLeft,
-                      child: Container(
-                        padding: EdgeInsets.only(left: 2.0, bottom: 20.0),
-                        child: Text(
-                          widget.title,
-                          style: TextStyle(
-                            fontSize: 18.0,
-                            color: Colors.black,
-                            fontWeight: FontWeight.w400,
-                          ),
-                          overflow: TextOverflow.ellipsis,
-                          maxLines: 1,
-                        ),
-                      ),
-                    ),
-                    Align(
-                      alignment: FractionalOffset.bottomLeft,
-                      child: RichText(
-                        text: TextSpan(
-                            text: '￥',
-                            style: TextStyle(fontSize: 15.0, color: Colors.red),
-                            children: <TextSpan>[
-                              TextSpan(
-                                text: widget.price,
-                                style: TextStyle(
-                                    fontSize: 18.0, color: Colors.red),
-                              ),
-                              TextSpan(
-                                text: widget.status + '   ' + widget.area,
-                                style: TextStyle(
-                                    fontSize: 15.0, color: Colors.black45),
-                              ),
-                            ]),
-                      ),
-                    ),
-                    Align(
-                      alignment: Alignment.bottomLeft,
-                      child: Row(
-                        children: <Widget>[
-                          Text(
-                            widget.owner,
-                            style: TextStyle(
-                                fontSize: 15.0, color: Colors.black45),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
+        FlatButton(
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: <Widget>[
+              Container(
+                width: 96.0,
+                height: 96.0,
+                child: Image.asset(
+                  widget.imagePath,
+                  fit: BoxFit.cover,
                 ),
               ),
-              flex: 3,
-            ),
-          ],
+              Expanded(
+                child: Padding(
+                  padding: EdgeInsets.only(left: 10.0, right: 5.0),
+                  child: Column(
+                    children: <Widget>[
+                      Align(
+                        alignment: FractionalOffset.topLeft,
+                        child: Container(
+                          padding: EdgeInsets.only(left: 2.0, bottom: 20.0),
+                          child: Text(
+                            widget.title,
+                            style: TextStyle(
+                              fontSize: 18.0,
+                              color: Colors.black,
+                              fontWeight: FontWeight.w400,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                            maxLines: 1,
+                          ),
+                        ),
+                      ),
+                      Align(
+                        alignment: FractionalOffset.bottomLeft,
+                        child: RichText(
+                          text: TextSpan(
+                              text: '￥',
+                              style: TextStyle(fontSize: 15.0, color: Colors.red),
+                              children: <TextSpan>[
+                                TextSpan(
+                                  text: widget.price,
+                                  style: TextStyle(
+                                      fontSize: 18.0, color: Colors.red),
+                                ),
+                                TextSpan(
+                                  text: widget.status + '   ' + widget.area,
+                                  style: TextStyle(
+                                      fontSize: 15.0, color: Colors.black45),
+                                ),
+                              ]),
+                        ),
+                      ),
+                      Align(
+                        alignment: Alignment.bottomLeft,
+                        child: Row(
+                          children: <Widget>[
+                            Text(
+                              widget.owner,
+                              style: TextStyle(
+                                  fontSize: 15.0, color: Colors.black45),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                flex: 3,
+              ),
+            ],
+          ), onPressed: () {
+          Navigator.of(context).push(MaterialPageRoute(
+            builder: (context) {
+              //指定跳转的页面
+              return ProductionPage();
+            },
+          ));
+        }
         ),
         Container(
           margin: EdgeInsets.only(top: 10.0, bottom: 10.0),

@@ -15,6 +15,26 @@ class _LoginPageState extends State<LoginPage> {
 
   var isRemember = false;
   var isAuto = false;
+  bool _isObscure = true;
+  Color _eyeColor;
+  GlobalKey<FormState> _formKey = new GlobalKey<FormState>();
+  GlobalKey<FormState> _loginViewKey = new GlobalKey<FormState>();
+
+  String _name;
+  String _password;
+
+  TextEditingController nameController = TextEditingController();
+  TextEditingController passwordController = TextEditingController();
+
+  void _forSubmitted() {
+    var _form = _formKey.currentState;
+
+    if (_form.validate()) {
+      _form.save();
+      print(_name);
+      print(_password);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -39,121 +59,147 @@ class _LoginPageState extends State<LoginPage> {
         ],
       ),
       body: SingleChildScrollView(
+          key: _loginViewKey,
           child: Column(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: <Widget>[
-          InnerRow(
-            child: Container(
-              alignment: Alignment.center,
-              width: 72.0,
-              height: 72.0,
-              margin: EdgeInsets.fromLTRB(10.0, 50.0, 10.0, 10.0),
-              child: Image.asset(
-                logoPath,
-                fit: BoxFit.cover,
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: <Widget>[
+              InnerRow(child: buildLogoImage(context)),
+              InnerRow(
+                child: Form(
+                    key: _formKey,
+                    child: Column(
+                      children: <Widget>[
+                        buildNameTextField(context),
+                        buildPasswordTextField(context)
+                      ],
+                    )),
               ),
-            ),
-          ),
-          InnerRow(
-            child: TextField(
-              style: textTips,
-              controller: TextEditingController(),
-              decoration: InputDecoration(
-//                    border: OutlineInputBorder(),
-                prefixIcon: Icon(Icons.person),
-                labelText: '请输入你的用户名或邮箱',
-              ),
-            ),
-          ),
-          InnerRow(
-            child: TextField(
-              style: hintTips,
-              controller: TextEditingController(),
-              decoration: InputDecoration(
-//                    border: OutlineInputBorder(),
-                prefixIcon: Icon(Icons.lock),
-                labelText: '请输入你的密码',
-              ),
-              obscureText: true,
-            ),
-          ),
-          InnerRow(
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: <Widget>[
-                Row(
-                  children: <Widget>[
-                    Checkbox(
-                        value: isRemember,
-                        onChanged: (bool) {
-                          setState(() {
-                            isRemember = bool;
-                          });
-                        }),
-                    Text('记住密码'),
-                  ],
-                ),
-                Row(
-                  children: <Widget>[
-                    Checkbox(
-                        value: isAuto,
-                        onChanged: (bool) {
-                          setState(() {
-                            isAuto = bool;
-                          });
-                        }),
-                    Text('自动登录'),
-                  ],
-                ),
-              ],
-            ),
-          ),
-          InnerRow(
-              child: Container(
-            constraints: BoxConstraints.expand(
-              height: Theme.of(context).textTheme.display1.fontSize * 1.1 + 10,
-            ),
-            child: RaisedButton(
-              color: Colors.green,
-              onPressed: () {
-                Navigator.of(context).push(MaterialPageRoute(
-                  builder: (context) {
-                    //指定跳转的页面
-                    return RegisterPage();
-                  },
-                ));
-              },
-              child: Text(
-                '登录',
-                style: TextStyle(color: Colors.white, fontSize: 20.0),
-              ),
-            ),
+              InnerRow(child: buildLoginStateRow(context)),
+              InnerRow(child: buildLoginButton(context)),
+              InnerRow(child: buildRegisterButton(context))
+            ],
           )),
-          InnerRow(
-              child: Container(
-            constraints: BoxConstraints.expand(
-              height: Theme.of(context).textTheme.display1.fontSize * 1.1 + 10,
-            ),
-            child: OutlineButton(
-              borderSide: BorderSide(color: Theme.of(context).primaryColor),
-              onPressed: () {
-                Navigator.of(context).push(MaterialPageRoute(
-                  builder: (context) {
-                    //指定跳转的页面
-                    return RegisterPage();
-                  },
-                ));
-              },
-              child: Text(
-                '注册',
-                style: TextStyle(
-                    color: Theme.of(context).primaryColor, fontSize: 20.0),
+    );
+  }
+
+  Container buildLogoImage(BuildContext context) {
+    return Container(
+      alignment: Alignment.center,
+      width: 72.0,
+      height: 72.0,
+      margin: EdgeInsets.fromLTRB(10.0, 50.0, 10.0, 10.0),
+      child: Image.asset(
+        logoPath,
+        fit: BoxFit.cover,
+      ),
+    );
+  }
+
+  TextFormField buildNameTextField(BuildContext context) {
+    return TextFormField(
+      controller: nameController,
+      decoration: InputDecoration(
+        prefixIcon: Icon(Icons.person),
+        labelText: '请输入你的用户名或邮箱',
+      ),
+      onSaved: (val) {
+        _name = val;
+      },
+    );
+  }
+
+  TextFormField buildPasswordTextField(BuildContext context) {
+    return TextFormField(
+      controller: passwordController,
+      validator: (val) {
+        return val.length < 4 ? "密码长度错误" : null;
+      },
+      onSaved: (val) {
+        _password = val;
+      },
+      decoration: InputDecoration(
+          prefixIcon: Icon(Icons.lock),
+          labelText: '请输入你的密码',
+          suffixIcon: IconButton(
+              icon: Icon(
+                Icons.remove_red_eye,
+                color: _eyeColor,
               ),
+              onPressed: () {})),
+      obscureText: true,
+    );
+  }
+
+  Row buildLoginStateRow(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: <Widget>[
+        Row(
+          children: <Widget>[
+            Checkbox(
+              value: isRemember,
+              onChanged: (bool) {
+                setState(() {
+                  isRemember = bool;
+                });
+              },
             ),
-          ))
-        ],
-      )),
-//      resizeToAvoidBottomPadding: true,
+            Text('记住密码'),
+          ],
+        ),
+        Row(
+          children: <Widget>[
+            Checkbox(
+                value: isAuto,
+                onChanged: (bool) {
+                  setState(() {
+                    isAuto = bool;
+                  });
+                }),
+            Text('自动登录'),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Container buildLoginButton(BuildContext context) {
+    return Container(
+      constraints: BoxConstraints.expand(
+        height: Theme.of(context).textTheme.display1.fontSize * 1.1 + 10,
+      ),
+      child: RaisedButton(
+        color: Colors.green,
+        onPressed: _forSubmitted,
+        child: Text(
+          '登录',
+          style: TextStyle(color: Colors.white, fontSize: 20.0),
+        ),
+      ),
+    );
+  }
+
+  Container buildRegisterButton(BuildContext context) {
+    return Container(
+      constraints: BoxConstraints.expand(
+        height: Theme.of(context).textTheme.display1.fontSize * 1.1 + 10,
+      ),
+      child: OutlineButton(
+        borderSide: BorderSide(color: Theme.of(context).primaryColor),
+        onPressed: () {
+          Navigator.of(context).push(MaterialPageRoute(
+            builder: (context) {
+              //指定跳转的页面
+              return RegisterPage();
+            },
+          ));
+        },
+        child: Text(
+          '注册',
+          style:
+              TextStyle(color: Theme.of(context).primaryColor, fontSize: 20.0),
+        ),
+      ),
     );
   }
 }
@@ -198,6 +244,22 @@ class _InnerRowState extends State<InnerRow> {
           ),
         ],
       ),
+    );
+  }
+}
+
+class Post {
+  final String username;
+  final String password;
+  final String body;
+
+  Post({this.username, this.password, this.body});
+
+  factory Post.fromJson(Map<String, dynamic> json) {
+    return new Post(
+      username: json['username'],
+      password: json['password'],
+      body: json['body'],
     );
   }
 }
