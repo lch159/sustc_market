@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:sustc_market/pages/Register.dart';
+import 'package:dio/dio.dart';
 
 class LoginPage extends StatefulWidget {
   @override
@@ -13,8 +14,8 @@ class _LoginPageState extends State<LoginPage> {
   var hintTips = TextStyle(fontSize: 15.0, color: Colors.black26);
   static const logoPath = 'images/LOGO/1.5x/logo_hdpi.png';
 
-  var isRemember = false;
-  var isAuto = false;
+  var _isRemember = false;
+  var _isAuto = false;
   bool _isObscure = true;
   Color _eyeColor;
   GlobalKey<FormState> _formKey = new GlobalKey<FormState>();
@@ -28,6 +29,11 @@ class _LoginPageState extends State<LoginPage> {
 
   void _forSubmitted() {
     var _form = _formKey.currentState;
+
+    Dio dio = new Dio();
+    dio.get("https://www.baidu.com").then((response) {
+      print(response.data);
+    });
 
     if (_form.validate()) {
       _form.save();
@@ -125,8 +131,13 @@ class _LoginPageState extends State<LoginPage> {
                 Icons.remove_red_eye,
                 color: _eyeColor,
               ),
-              onPressed: () {})),
-      obscureText: true,
+              onPressed: () {
+                setState(() {
+                  _isObscure = !_isObscure;
+                });
+              }),
+      ),
+      obscureText: _isObscure,
     );
   }
 
@@ -137,10 +148,10 @@ class _LoginPageState extends State<LoginPage> {
         Row(
           children: <Widget>[
             Checkbox(
-              value: isRemember,
+              value: _isRemember,
               onChanged: (bool) {
                 setState(() {
-                  isRemember = bool;
+                  _isRemember = bool;
                 });
               },
             ),
@@ -150,10 +161,10 @@ class _LoginPageState extends State<LoginPage> {
         Row(
           children: <Widget>[
             Checkbox(
-                value: isAuto,
+                value: _isAuto,
                 onChanged: (bool) {
                   setState(() {
-                    isAuto = bool;
+                    _isAuto = bool;
                   });
                 }),
             Text('自动登录'),

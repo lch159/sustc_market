@@ -148,7 +148,7 @@ class _RegisterPageState extends State<RegisterPage> {
             child: Padding(
           padding: const EdgeInsets.only(top: 8.0),
           child: TextFormField(
-            controller: emailController,
+            controller: authController,
             decoration: InputDecoration(
                 border: OutlineInputBorder(), labelText: '输入验证码'),
             onSaved: (val) {

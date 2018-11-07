@@ -628,7 +628,7 @@ class _ItemCardState extends State<ItemCard> {
                       fontSize: 18.0,
                       fontWeight: FontWeight.w300,
                       color: Colors.black),
-                  maxLines: 2,
+                  maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
@@ -636,7 +636,7 @@ class _ItemCardState extends State<ItemCard> {
             ),
             Expanded(
               child: Container(
-                padding: EdgeInsets.only(left: 10.0, right: 10.0),
+                padding: EdgeInsets.only(left: 10.0, top:5.0,right: 10.0),
                 alignment: Alignment.center,
                 child: Text('￥' + widget.price,
                     style: TextStyle(

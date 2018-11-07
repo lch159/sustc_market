@@ -15,14 +15,21 @@ class _ProductionPageState extends State<ProductionPage> {
     // TODO: implement build
     return Scaffold(
       appBar: buildAppbar(context),
-      body: ListView(
+      body: Stack(
         children: <Widget>[
-          buildOwnerRow(context),
-          Divider(),
+          Opacity(
+            opacity: _isFloatButton ? 0.5 : 0.0,
+            child: Container(color: Colors.black12),
+          ),
+          ListView(
+            children: <Widget>[
+              buildOwnerRow(context),
+              Divider(),
+            ],
+          ),
         ],
       ),
       floatingActionButton: buildFloatingActionButton(context),
-
     );
   }
 
@@ -34,12 +41,11 @@ class _ProductionPageState extends State<ProductionPage> {
             onSelected: (String value) {
               setState(() {});
             },
-            itemBuilder: (BuildContext context) =>
-            <PopupMenuItem<String>>[
-              PopupMenuItem<String>(value: '我的信息', child: Text('我的信息')),
-              PopupMenuItem<String>(value: '我的消息', child: Text('我的消息')),
-              PopupMenuItem<String>(value: '我的订单', child: Text('我的订单'))
-            ])
+            itemBuilder: (BuildContext context) => <PopupMenuItem<String>>[
+                  PopupMenuItem<String>(value: '我的信息', child: Text('我的信息')),
+                  PopupMenuItem<String>(value: '我的消息', child: Text('我的消息')),
+                  PopupMenuItem<String>(value: '我的订单', child: Text('我的订单'))
+                ])
       ],
     );
   }
@@ -74,15 +80,19 @@ class _ProductionPageState extends State<ProductionPage> {
 
   Column buildTitleRow(BuildContext context) {
     return Column(
-      children: <Widget>[
+      children: <Widget>[],
+    );
+  }
 
-      ],
+  Container buildFloatingActionContainer(BuildContext context){
+    return Container(
+      
     );
   }
 
   FloatingActionButton buildFloatingActionButton(BuildContext context) {
     return FloatingActionButton(
-      child: _isFloatButton ? Icon(Icons.clear) : Icon(Icons.add),
+      child: _isFloatButton ? Icon(Icons.clear) : Icon(Icons.border_color),
       elevation: 7.0,
       highlightElevation: 14.0,
       onPressed: () {
