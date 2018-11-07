@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sustc_market/main.dart';
 import 'package:sustc_market/pages/Register.dart';
 import 'package:dio/dio.dart';
 
@@ -18,7 +19,7 @@ class _LoginPageState extends State<LoginPage> {
   var _isAuto = false;
   bool _isObscure = true;
   Color _eyeColor;
-  GlobalKey<FormState> _formKey = new GlobalKey<FormState>();
+  GlobalKey<FormState> _loginFormKey = new GlobalKey<FormState>();
   GlobalKey<FormState> _loginViewKey = new GlobalKey<FormState>();
 
   String _name;
@@ -27,18 +28,30 @@ class _LoginPageState extends State<LoginPage> {
   TextEditingController nameController = TextEditingController();
   TextEditingController passwordController = TextEditingController();
 
-  void _forSubmitted() {
-    var _form = _formKey.currentState;
+  void _formSubmitted() async {
+    var _form = _loginFormKey.currentState;
 
-    Dio dio = new Dio();
-    dio.get("https://www.baidu.com").then((response) {
-      print(response.data);
+    FormData loginFormData = new FormData.from({
+      "username": _name,
+      "password": _password,
     });
-
+    setState(() {});
     if (_form.validate()) {
       _form.save();
-      print(_name);
-      print(_password);
+      Dio dio = new Dio();
+      Response response = await dio.get(
+          "http://120.79.232.137:8080/SUSTechFM/login.jsp",
+          data: loginFormData);
+      if (response.statusCode == 200) {
+        Navigator.of(context).push(MaterialPageRoute(
+          builder: (context) {
+            //指定跳转的页面
+            return MainPage();
+          },
+        ));
+        print(response.headers);
+        print(response.data);
+      }
     }
   }
 
@@ -72,7 +85,7 @@ class _LoginPageState extends State<LoginPage> {
               InnerRow(child: buildLogoImage(context)),
               InnerRow(
                 child: Form(
-                    key: _formKey,
+                    key: _loginFormKey,
                     child: Column(
                       children: <Widget>[
                         buildNameTextField(context),
@@ -124,18 +137,18 @@ class _LoginPageState extends State<LoginPage> {
         _password = val;
       },
       decoration: InputDecoration(
-          prefixIcon: Icon(Icons.lock),
-          labelText: '请输入你的密码',
-          suffixIcon: IconButton(
-              icon: Icon(
-                Icons.remove_red_eye,
-                color: _eyeColor,
-              ),
-              onPressed: () {
-                setState(() {
-                  _isObscure = !_isObscure;
-                });
-              }),
+        prefixIcon: Icon(Icons.lock),
+        labelText: '请输入你的密码',
+        suffixIcon: IconButton(
+            icon: Icon(
+              Icons.remove_red_eye,
+              color: _eyeColor,
+            ),
+            onPressed: () {
+              setState(() {
+                _isObscure = !_isObscure;
+              });
+            }),
       ),
       obscureText: _isObscure,
     );
@@ -181,7 +194,7 @@ class _LoginPageState extends State<LoginPage> {
       ),
       child: RaisedButton(
         color: Colors.green,
-        onPressed: _forSubmitted,
+        onPressed: _formSubmitted,
         child: Text(
           '登录',
           style: TextStyle(color: Colors.white, fontSize: 20.0),

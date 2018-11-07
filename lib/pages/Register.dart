@@ -1,4 +1,6 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:sustc_market/main.dart';
 
 class RegisterPage extends StatefulWidget {
   @override
@@ -16,12 +18,84 @@ class _RegisterPageState extends State<RegisterPage> {
   TextEditingController repasswordController = TextEditingController();
   TextEditingController emailController = TextEditingController();
   TextEditingController authController = TextEditingController();
+  GlobalKey<FormState> _registerFormKey = new GlobalKey<FormState>();
 
   var _name;
   var _password;
   var _repassword;
   var _email;
   var _auth;
+
+  void _registerFormSubmitted() async {
+    var _form = _registerFormKey.currentState;
+
+    FormData registerFormData = new FormData.from({
+      "username": _name,
+      "password": _password,
+      "email": _email,
+    });
+
+    setState(() {});
+    if (_form.validate()) {
+      _form.save();
+      Dio dio = new Dio();
+      Response response = await dio.get(
+          "http://120.79.232.137:8080/SUSTechFM/register.jsp",
+          data: registerFormData);
+      if (response.statusCode != 200) {
+        return showDialog<Null>(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: Text('发送验证码失败'),
+              actions: <Widget>[
+                FlatButton(
+                  child: Text('重新发送'),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                ),
+                FlatButton(
+                  child: Text('取消'),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                ),
+              ],
+            );
+          },
+        );
+      }
+    }
+  }
+
+  void _authSubmitted() async {
+    var _form = _registerFormKey.currentState;
+
+    FormData registerFormData = new FormData.from({
+      "username": _name,
+      "password": _password,
+      "email": _email,
+      "auth": _auth,
+    });
+
+    setState(() {});
+    if (_form.validate()) {
+      _form.save();
+      Dio dio = new Dio();
+      Response response = await dio.get(
+          "http://120.79.232.137:8080/SUSTechFM/register.jsp",
+          data: registerFormData);
+      if (response.statusCode != 200) {
+        Navigator.of(context).push(MaterialPageRoute(
+          builder: (context) {
+            //指定跳转的页面
+            return MainPage();
+          },
+        ));
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -32,26 +106,24 @@ class _RegisterPageState extends State<RegisterPage> {
         children: <Widget>[
           InnerRow(
             child: Form(
+                key: _registerFormKey,
                 child: Column(
-              children: <Widget>[
-                buildNameTextField(context),
-                buildPasswordTextField(context),
-                buildRepasswordTextField(context),
-                buildEmailTextField(context),
-                buildAuthTextField(context)
-              ],
-            )
-            ),
+                  children: <Widget>[
+                    buildNameTextField(context),
+                    buildPasswordTextField(context),
+                    buildRepasswordTextField(context),
+                    buildEmailTextField(context),
+                    buildAuthTextField(context)
+                  ],
+                )),
           ),
-          InnerRow(
-            child: buildRegisterButton(context)
-          )
+          InnerRow(child: buildRegisterButton(context))
         ],
       )),
     );
   }
 
-  AppBar buildAppbar(BuildContext context){
+  AppBar buildAppbar(BuildContext context) {
     return AppBar(
       leading: IconButton(
         icon: Icon(Icons.arrow_back),
@@ -63,9 +135,7 @@ class _RegisterPageState extends State<RegisterPage> {
       title: Text('注册'),
       actions: <Widget>[
         IconButton(
-            icon: Icon(Icons.error_outline),
-            tooltip: 'Anno',
-            onPressed: null),
+            icon: Icon(Icons.error_outline), tooltip: 'Anno', onPressed: null),
       ],
     );
   }
@@ -128,7 +198,9 @@ class _RegisterPageState extends State<RegisterPage> {
         Expanded(
           child: OutlineButton(
             borderSide: BorderSide(color: Theme.of(context).primaryColor),
-            onPressed: () {},
+            onPressed: () {
+              _registerFormSubmitted();
+            },
             child: Text(
               '发送验证码',
               style: TextStyle(
@@ -160,20 +232,14 @@ class _RegisterPageState extends State<RegisterPage> {
     );
   }
 
-  Container buildRegisterButton (BuildContext context){
+  Container buildRegisterButton(BuildContext context) {
     return Container(
       constraints: BoxConstraints.expand(
-        height:
-        Theme.of(context).textTheme.display1.fontSize * 1.1 + 20,
+        height: Theme.of(context).textTheme.display1.fontSize * 1.1 + 20,
       ),
       child: RaisedButton(
         onPressed: () {
-          Navigator.of(context).push(MaterialPageRoute(
-            builder: (context) {
-              //指定跳转的页面
-              return RegisterPage();
-            },
-          ));
+          _authSubmitted();
         },
         color: Colors.blue,
         child: Text(

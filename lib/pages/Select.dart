@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:sustc_market/pages/Production.dart';
 
-
 class SelectPage extends StatefulWidget {
   @override
   State<StatefulWidget> createState() {
@@ -57,7 +56,7 @@ class _SelectPageState extends State<SelectPage> {
       body: ListView(
         children: <Widget>[
           Padding(
-            padding: const EdgeInsets.only(left: 8.0),
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: <Widget>[
@@ -209,7 +208,7 @@ class _SelectPageState extends State<SelectPage> {
                         alignment: FractionalOffset.centerLeft,
                         child: Padding(
                           padding: EdgeInsets.only(
-                              left: 20.0, top: 5.0, bottom: 5.0),
+                              left: 20.0, top: 2.0, bottom: 2.0),
                           child: Text(
                             '综合',
                             style: TextStyle(color: Colors.black),
@@ -224,7 +223,7 @@ class _SelectPageState extends State<SelectPage> {
                         alignment: FractionalOffset.centerLeft,
                         child: Padding(
                           padding: EdgeInsets.only(
-                              left: 20.0, top: 5.0, bottom: 5.0),
+                              left: 20.0, top: 2.0, bottom: 2.0),
                           child: Text(
                             '销量',
                             style: TextStyle(color: Colors.black),
@@ -239,7 +238,7 @@ class _SelectPageState extends State<SelectPage> {
                         alignment: FractionalOffset.centerLeft,
                         child: Padding(
                           padding: EdgeInsets.only(
-                              left: 20.0, top: 5.0, bottom: 5.0),
+                              left: 20.0, top: 2.0, bottom: 2.0),
                           child: Text(
                             '距离由近到远',
                             style: TextStyle(color: Colors.black),
@@ -254,7 +253,7 @@ class _SelectPageState extends State<SelectPage> {
                         alignment: FractionalOffset.centerLeft,
                         child: Padding(
                           padding: EdgeInsets.only(
-                              left: 20.0, top: 5.0, bottom: 5.0),
+                              left: 20.0, top: 2.0, bottom: 2.0),
                           child: Text(
                             '评论数从高到低',
                             style: TextStyle(color: Colors.black),
@@ -263,104 +262,113 @@ class _SelectPageState extends State<SelectPage> {
                       ),
                       onPressed: () {},
                     ),
-                    Divider(),
-                  ]
+                    Container(height: 5.0,),
+
+            ]
                 : <Widget>[],
           ),
-          Row(
-            children: _priceActive
-                ? <Widget>[
-                    Expanded(
-                        child: Align(
-                            alignment: Alignment.center, child: Text('从'))),
-                    Expanded(
-                      child: TextField(
-                        controller: TextEditingController(),
-                        decoration: InputDecoration(
-                          filled: true,
-                          fillColor: Colors.white,
-                          hintText: '最低价',
-                          contentPadding: EdgeInsets.all(10.0),
-                          border: OutlineInputBorder(
-                              borderRadius:
-                                  BorderRadius.all(Radius.circular(90.0))),
+          Column(
+            children: <Widget>[
+              Row(
+                children: _priceActive
+                    ? <Widget>[
+                        Expanded(
+                            child: Align(
+                                alignment: Alignment.center, child: Text('从'))),
+                        Expanded(
+                          child: TextField(
+                            controller: TextEditingController(),
+                            decoration: InputDecoration(
+                              filled: true,
+                              fillColor: Colors.white,
+                              hintText: '最低价',
+                              contentPadding: EdgeInsets.all(10.0),
+                              border: OutlineInputBorder(
+                                  borderRadius:
+                                      BorderRadius.all(Radius.circular(90.0))),
+                            ),
+                          ),
+                          flex: 2,
                         ),
-                      ),
-                      flex: 2,
-                    ),
-                    Expanded(
-                        child: Align(
-                            alignment: Alignment.center, child: Text('到'))),
-                    Expanded(
-                      child: TextField(
-                        controller: TextEditingController(),
-                        decoration: InputDecoration(
-                          filled: true,
-                          fillColor: Colors.white,
-                          hintText: '最高价',
-                          contentPadding: EdgeInsets.all(10.0),
-                          border: OutlineInputBorder(
-                              borderRadius:
-                                  BorderRadius.all(Radius.circular(90.0))),
+                        Expanded(
+                            child: Align(
+                                alignment: Alignment.center, child: Text('到'))),
+                        Expanded(
+                          child: TextField(
+                            controller: TextEditingController(),
+                            decoration: InputDecoration(
+                              filled: true,
+                              fillColor: Colors.white,
+                              hintText: '最高价',
+                              contentPadding: EdgeInsets.all(10.0),
+                              border: OutlineInputBorder(
+                                  borderRadius:
+                                      BorderRadius.all(Radius.circular(90.0))),
+                            ),
+                          ),
+                          flex: 2,
                         ),
-                      ),
-                      flex: 2,
-                    ),
-                    Divider(),
-                  ]
-                : <Widget>[],
+                      ]
+                    : <Widget>[],
+              ),
+              Container(height: 5.0,),
+            ],
           ),
-          Row(
-            children: _timeActive
-                ? <Widget>[
-                    Expanded(
-                        child: Align(
-                            alignment: Alignment.center, child: Text('从'))),
-                    Expanded(
-                      child: FlatButton(
-                        onPressed: () {
-                          showDatePicker(
-                            context: this.context,
-                            initialDate: DateTime(2018, 1, 1, 0, 0, 0, 0),
-                            firstDate: DateTime(2018, 1, 1, 0, 0, 0, 0),
-                            lastDate: DateTime(2019, 12, 12, 0, 0, 0, 0),
-                          );
-                        },
-                        child: Row(
-                          children: <Widget>[
-                            Text('起始日期'),
-                            Icon(Icons.date_range)
-                          ],
+          Column(
+            children: <Widget>[
+              Row(
+                children: _timeActive
+                    ? <Widget>[
+                        Expanded(
+                            child: Align(
+                                alignment: Alignment.center, child: Text('从'))),
+                        Expanded(
+                          child: FlatButton(
+                            onPressed: () {
+                              showDatePicker(
+                                context: this.context,
+                                initialDate: DateTime(2018, 1, 1, 0, 0, 0, 0),
+                                firstDate: DateTime(2018, 1, 1, 0, 0, 0, 0),
+                                lastDate: DateTime(2019, 12, 12, 0, 0, 0, 0),
+                              );
+                            },
+                            child: Row(
+                              children: <Widget>[
+                                Text('起始日期'),
+                                Icon(Icons.date_range)
+                              ],
+                            ),
+                          ),
+                          flex: 2,
                         ),
-                      ),
-                      flex: 2,
-                    ),
-                    Expanded(
-                        child: Align(
-                            alignment: Alignment.center, child: Text('到'))),
-                    Divider(),
-                    Expanded(
-                      child: FlatButton(
-                        onPressed: () {
-                          showDatePicker(
-                            context: this.context,
-                            initialDate: DateTime(2018, 1, 1, 0, 0, 0, 0),
-                            firstDate: DateTime(2018, 1, 1, 0, 0, 0, 0),
-                            lastDate: DateTime(2019, 12, 12, 0, 0, 0, 0),
-                          );
-                        },
-                        child: Row(
-                          children: <Widget>[
-                            Text('最后日期'),
-                            Icon(Icons.date_range)
-                          ],
+                        Expanded(
+                            child: Align(
+                                alignment: Alignment.center, child: Text('到'))),
+                        Expanded(
+                          child: FlatButton(
+                            onPressed: () {
+                              showDatePicker(
+                                context: this.context,
+                                initialDate: DateTime(2018, 1, 1, 0, 0, 0, 0),
+                                firstDate: DateTime(2018, 1, 1, 0, 0, 0, 0),
+                                lastDate: DateTime(2019, 12, 12, 0, 0, 0, 0),
+                              );
+                            },
+                            child: Row(
+                              children: <Widget>[
+                                Text('最后日期'),
+                                Icon(Icons.date_range)
+                              ],
+                            ),
+                          ),
+                          flex: 2,
                         ),
-                      ),
-                      flex: 2,
-                    ),
-                    Divider(),
-                  ]
-                : <Widget>[],
+
+                      ]
+                    : <Widget>[],
+              ),
+              Container(height: 5.0,),
+            ],
           ),
           ProductionCard(
             imagePath: 'images/tempItems/p1.jpg',
@@ -457,85 +465,86 @@ class _ProductionCardState extends State<ProductionCard> {
     return Column(
       children: <Widget>[
         FlatButton(
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: <Widget>[
-              Container(
-                width: 96.0,
-                height: 96.0,
-                child: Image.asset(
-                  widget.imagePath,
-                  fit: BoxFit.cover,
-                ),
-              ),
-              Expanded(
-                child: Padding(
-                  padding: EdgeInsets.only(left: 10.0, right: 5.0),
-                  child: Column(
-                    children: <Widget>[
-                      Align(
-                        alignment: FractionalOffset.topLeft,
-                        child: Container(
-                          padding: EdgeInsets.only(left: 2.0, bottom: 20.0),
-                          child: Text(
-                            widget.title,
-                            style: TextStyle(
-                              fontSize: 18.0,
-                              color: Colors.black,
-                              fontWeight: FontWeight.w400,
-                            ),
-                            overflow: TextOverflow.ellipsis,
-                            maxLines: 1,
-                          ),
-                        ),
-                      ),
-                      Align(
-                        alignment: FractionalOffset.bottomLeft,
-                        child: RichText(
-                          text: TextSpan(
-                              text: '￥',
-                              style: TextStyle(fontSize: 15.0, color: Colors.red),
-                              children: <TextSpan>[
-                                TextSpan(
-                                  text: widget.price,
-                                  style: TextStyle(
-                                      fontSize: 18.0, color: Colors.red),
-                                ),
-                                TextSpan(
-                                  text: widget.status + '   ' + widget.area,
-                                  style: TextStyle(
-                                      fontSize: 15.0, color: Colors.black45),
-                                ),
-                              ]),
-                        ),
-                      ),
-                      Align(
-                        alignment: Alignment.bottomLeft,
-                        child: Row(
-                          children: <Widget>[
-                            Text(
-                              widget.owner,
-                              style: TextStyle(
-                                  fontSize: 15.0, color: Colors.black45),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: <Widget>[
+                Container(
+                  width: 96.0,
+                  height: 96.0,
+                  child: Image.asset(
+                    widget.imagePath,
+                    fit: BoxFit.cover,
                   ),
                 ),
-                flex: 3,
-              ),
-            ],
-          ), onPressed: () {
-          Navigator.of(context).push(MaterialPageRoute(
-            builder: (context) {
-              //指定跳转的页面
-              return ProductionPage();
-            },
-          ));
-        }
-        ),
+                Expanded(
+                  child: Padding(
+                    padding: EdgeInsets.only(left: 10.0, right: 5.0),
+                    child: Column(
+                      children: <Widget>[
+                        Align(
+                          alignment: FractionalOffset.topLeft,
+                          child: Container(
+                            padding: EdgeInsets.only(left: 2.0, bottom: 20.0),
+                            child: Text(
+                              widget.title,
+                              style: TextStyle(
+                                fontSize: 18.0,
+                                color: Colors.black,
+                                fontWeight: FontWeight.w400,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                              maxLines: 1,
+                            ),
+                          ),
+                        ),
+                        Align(
+                          alignment: FractionalOffset.bottomLeft,
+                          child: RichText(
+                            text: TextSpan(
+                                text: '￥',
+                                style: TextStyle(
+                                    fontSize: 15.0, color: Colors.red),
+                                children: <TextSpan>[
+                                  TextSpan(
+                                    text: widget.price,
+                                    style: TextStyle(
+                                        fontSize: 18.0, color: Colors.red),
+                                  ),
+                                  TextSpan(
+                                    text: widget.status + '   ' + widget.area,
+                                    style: TextStyle(
+                                        fontSize: 15.0, color: Colors.black45),
+                                  ),
+                                ]),
+                          ),
+                        ),
+                        Align(
+                          alignment: Alignment.bottomLeft,
+                          child: Row(
+                            children: <Widget>[
+                              Text(
+                                widget.owner,
+                                style: TextStyle(
+                                    fontSize: 15.0, color: Colors.black45),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  flex: 3,
+                ),
+              ],
+            ),
+            onPressed: () {
+              Navigator.of(context).push(MaterialPageRoute(
+                builder: (context) {
+                  //指定跳转的页面
+                  return ProductionPage();
+                },
+              ));
+            }),
         Container(
           margin: EdgeInsets.only(top: 10.0, bottom: 10.0),
           height: 2.0,
