@@ -35,7 +35,7 @@ class _LoginPageState extends State<LoginPage> {
       "username": _name,
       "password": _password,
     });
-    setState(() {});
+
     if (_form.validate()) {
       _form.save();
       Dio dio = new Dio();
@@ -49,8 +49,6 @@ class _LoginPageState extends State<LoginPage> {
             return MainPage();
           },
         ));
-        print(response.headers);
-        print(response.data);
       }
     }
   }
@@ -117,6 +115,9 @@ class _LoginPageState extends State<LoginPage> {
   TextFormField buildNameTextField(BuildContext context) {
     return TextFormField(
       controller: nameController,
+      validator: (val) {
+        return nameValidator(val);
+      },
       decoration: InputDecoration(
         prefixIcon: Icon(Icons.person),
         labelText: '请输入你的用户名或邮箱',
@@ -125,6 +126,31 @@ class _LoginPageState extends State<LoginPage> {
         _name = val;
       },
     );
+  }
+
+  String nameValidator(String val) {
+    val =val.trim();
+    if(val.length==0)
+      return "用户名不能为空";
+    else if (val.length<6)
+      return "用户名不能小于3个汉字或6位字符";
+    else if (val.length>18)
+      return "用户名不能大与9个汉字或18位字符";
+    else if (val.length>18)
+      return "用户名不能大小18位字符";
+    else {
+      /*
+      检查每一位的utf-8是否在合理范围内
+      97~122: a~z ;
+      65~90: A~Z ;
+      95: _ ;
+      48~57: 0~9;
+
+       */
+      for(int i = 0;i<val.length;i++){
+        print(val.codeUnitAt(i));
+      }
+    }
   }
 
   TextFormField buildPasswordTextField(BuildContext context) {
