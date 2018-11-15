@@ -26,6 +26,11 @@ class _RegisterPageState extends State<RegisterPage> {
   var _email;
   var _auth;
 
+  bool _nameCorrect = false;
+  bool _passwordCorrect = false;
+  bool _repasswordCorrect = false;
+  bool _emailCorrect = false;
+
   void _registerFormSubmitted() async {
     var _form = _registerFormKey.currentState;
 
@@ -35,7 +40,6 @@ class _RegisterPageState extends State<RegisterPage> {
       "email": _email,
     });
 
-    setState(() {});
     if (_form.validate()) {
       _form.save();
       Dio dio = new Dio();
@@ -79,7 +83,6 @@ class _RegisterPageState extends State<RegisterPage> {
       "auth": _auth,
     });
 
-    setState(() {});
     if (_form.validate()) {
       _form.save();
       Dio dio = new Dio();
@@ -143,8 +146,17 @@ class _RegisterPageState extends State<RegisterPage> {
   TextFormField buildNameTextField(BuildContext context) {
     return TextFormField(
       controller: nameController,
+
+      validator: (val) {
+        return nameValidator(val);
+      },
       decoration: InputDecoration(
-        prefixIcon: Icon(Icons.person),
+        prefixIcon: _nameCorrect
+            ? Icon(
+                Icons.check,
+                color: Colors.green,
+              )
+            : Icon(Icons.person),
         labelText: '请输入你的用户名',
       ),
       onSaved: (val) {
@@ -156,8 +168,16 @@ class _RegisterPageState extends State<RegisterPage> {
   TextFormField buildPasswordTextField(BuildContext context) {
     return TextFormField(
       controller: passwordController,
+      validator: (val) {
+        return passwordValidator(val);
+      },
       decoration: InputDecoration(
-        prefixIcon: Icon(Icons.lock),
+        prefixIcon: _passwordCorrect
+            ? Icon(
+                Icons.check,
+                color: Colors.green,
+              )
+            : Icon(Icons.lock),
         labelText: '请输入你的密码',
       ),
       obscureText: true,
@@ -170,8 +190,16 @@ class _RegisterPageState extends State<RegisterPage> {
   TextFormField buildRepasswordTextField(BuildContext context) {
     return TextFormField(
       controller: repasswordController,
+      validator: (val) {
+        return repasswordValidator(val);
+      },
       decoration: InputDecoration(
-        prefixIcon: Icon(Icons.lock),
+        prefixIcon: _repasswordCorrect
+            ? Icon(
+                Icons.check,
+                color: Colors.green,
+              )
+            : Icon(Icons.lock),
         labelText: '重复输入密码',
       ),
       obscureText: true,
@@ -187,8 +215,17 @@ class _RegisterPageState extends State<RegisterPage> {
         Expanded(
           child: TextFormField(
             controller: emailController,
+            validator: (val) {
+              return emailValidator(val);
+            },
             decoration: InputDecoration(
-                prefixIcon: Icon(Icons.mail), labelText: '请输入你的邮箱'),
+                prefixIcon: _emailCorrect
+                    ? Icon(
+                        Icons.check,
+                        color: Colors.green,
+                      )
+                    : Icon(Icons.mail),
+                labelText: '请输入你的邮箱'),
             onSaved: (val) {
               _email = val;
             },
@@ -230,6 +267,62 @@ class _RegisterPageState extends State<RegisterPage> {
         )),
       ],
     );
+  }
+
+  String nameValidator(String val) {
+    val = val.trim();
+    RegExp regExpUsername = new RegExp(r'[^a-zA-Z0-9_]');
+    _nameCorrect = false;
+    if (val.length == 0)
+      return "用户名不能为空";
+    else if (val.length < 6)
+      return "用户名不能小于3个汉字或6位字符";
+    else if (val.length > 18)
+      return "用户名不能大与9个汉字或18位字符";
+    else if (regExpUsername.hasMatch(val))
+      return "用户名仅支持字母数字和下划线";
+    else
+      _nameCorrect = true;
+    return null;
+  }
+
+  String passwordValidator(String val) {
+    val = val.trim();
+    _passwordCorrect = false;
+    if (val.length == 0)
+      return "密码不能为空";
+    else if (val.length < 6)
+      return "密码长度不能小于6位";
+    else
+      _passwordCorrect = true;
+    return null;
+  }
+
+  String repasswordValidator(String val) {
+    val = val.trim();
+    _repasswordCorrect = false;
+    if (val.length == 0)
+      return "重复密码不能为空";
+    else if (val.length < 6)
+      return "密码长度不能小于6位";
+    else if (passwordController.text != repasswordController.text)
+      return "两次密码不相同";
+    else
+      _repasswordCorrect = true;
+    return null;
+  }
+
+  String emailValidator(String val) {
+    val = val.trim();
+    RegExp regExpEmail = new RegExp(r'@mail.sustc.edu.cn$');
+    _emailCorrect = false;
+    if (val.length == 0)
+      return "邮箱不能为空";
+    else if (!regExpEmail.hasMatch(val))
+      return "请输入学校提供的邮箱";
+    else
+      _emailCorrect = true;
+    return null;
   }
 
   Container buildRegisterButton(BuildContext context) {

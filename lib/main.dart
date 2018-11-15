@@ -3,6 +3,7 @@ import 'package:sustc_market/pages/Search.dart';
 import 'package:sustc_market/pages/Login.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:sustc_market/pages/Select.dart';
+import 'package:sustc_market/pages/Upload.dart';
 
 void main() {
   runApp(MaterialApp(
@@ -47,6 +48,15 @@ class _MainPageState extends State<MainPage> {
             ),
           ),
         ),
+        actions: <Widget>[
+          IconButton(
+            icon: Icon(Icons.file_upload),
+            onPressed: () {
+              Navigator.push(
+                  context, MaterialPageRoute(builder: (context) => UploadPage()));
+            },
+          )
+        ],
       ),
       drawer: Drawer(
         child: HomeBuilder.homeDrawer(),
@@ -636,7 +646,7 @@ class _ItemCardState extends State<ItemCard> {
             ),
             Expanded(
               child: Container(
-                padding: EdgeInsets.only(left: 10.0, top:5.0,right: 10.0),
+                padding: EdgeInsets.only(left: 10.0, top: 5.0, right: 10.0),
                 alignment: Alignment.center,
                 child: Text('￥' + widget.price,
                     style: TextStyle(

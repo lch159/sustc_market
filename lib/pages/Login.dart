@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:sustc_market/main.dart';
 import 'package:sustc_market/pages/Register.dart';
 import 'package:dio/dio.dart';
+import 'package:sqflite/sqflite.dart';
 
 class LoginPage extends StatefulWidget {
   @override
@@ -22,8 +23,10 @@ class _LoginPageState extends State<LoginPage> {
   GlobalKey<FormState> _loginFormKey = new GlobalKey<FormState>();
   GlobalKey<FormState> _loginViewKey = new GlobalKey<FormState>();
 
-  String _name;
+  String _loginName;
   String _password;
+
+  bool _isEmail = false;
 
   TextEditingController nameController = TextEditingController();
   TextEditingController passwordController = TextEditingController();
@@ -32,7 +35,8 @@ class _LoginPageState extends State<LoginPage> {
     var _form = _loginFormKey.currentState;
 
     FormData loginFormData = new FormData.from({
-      "username": _name,
+      "name": _isEmail ? "-1" : _loginName,
+      "email": _isEmail ? _loginName : "-1",
       "password": _password,
     });
 
@@ -40,7 +44,7 @@ class _LoginPageState extends State<LoginPage> {
       _form.save();
       Dio dio = new Dio();
       Response response = await dio.get(
-          "http://120.79.232.137:8080/SUSTechFM/login.jsp",
+          "http://120.79.232.137:8080/helloSSM/user/login",
           data: loginFormData);
       if (response.statusCode == 200) {
         Navigator.of(context).push(MaterialPageRoute(
@@ -123,41 +127,16 @@ class _LoginPageState extends State<LoginPage> {
         labelText: '请输入你的用户名或邮箱',
       ),
       onSaved: (val) {
-        _name = val;
+        _loginName = val;
       },
     );
-  }
-
-  String nameValidator(String val) {
-    val =val.trim();
-    if(val.length==0)
-      return "用户名不能为空";
-    else if (val.length<6)
-      return "用户名不能小于3个汉字或6位字符";
-    else if (val.length>18)
-      return "用户名不能大与9个汉字或18位字符";
-    else if (val.length>18)
-      return "用户名不能大小18位字符";
-    else {
-      /*
-      检查每一位的utf-8是否在合理范围内
-      97~122: a~z ;
-      65~90: A~Z ;
-      95: _ ;
-      48~57: 0~9;
-
-       */
-      for(int i = 0;i<val.length;i++){
-        print(val.codeUnitAt(i));
-      }
-    }
   }
 
   TextFormField buildPasswordTextField(BuildContext context) {
     return TextFormField(
       controller: passwordController,
       validator: (val) {
-        return val.length < 4 ? "密码长度错误" : null;
+        return passwordValidator(val);
       },
       onSaved: (val) {
         _password = val;
@@ -178,6 +157,39 @@ class _LoginPageState extends State<LoginPage> {
       ),
       obscureText: _isObscure,
     );
+  }
+
+  String nameValidator(String val) {
+    val = val.trim();
+    RegExp regExpEmail = new RegExp(r'@mail.sustc.edu.cn$');
+    RegExp regExpUsername = new RegExp(r'[^a-zA-Z0-9_]');
+    if (val.length == 0)
+      return "用户名不能为空";
+    else if (val.contains("@")) {
+      if (!regExpEmail.hasMatch(val)) {
+        _isEmail = false;
+        return "请输入学校提供的邮箱";
+      } else
+        _isEmail = true;
+    } else if (val.length < 6)
+      return "用户名不能小于3个汉字或6位字符";
+    else if (val.length > 18)
+      return "用户名不能大与9个汉字或18位字符";
+    else if (regExpUsername.hasMatch(val))
+      return "用户名仅支持字母数字和下划线";
+    else
+      return null;
+  }
+
+  String passwordValidator(String val) {
+    val = val.trim();
+
+    if (val.length == 0)
+      return "密码不能为空";
+    else if (val.length < 6)
+      return "密码长度不能小于6位";
+    else
+      return null;
   }
 
   Row buildLoginStateRow(BuildContext context) {
@@ -294,22 +306,6 @@ class _InnerRowState extends State<InnerRow> {
           ),
         ],
       ),
-    );
-  }
-}
-
-class Post {
-  final String username;
-  final String password;
-  final String body;
-
-  Post({this.username, this.password, this.body});
-
-  factory Post.fromJson(Map<String, dynamic> json) {
-    return new Post(
-      username: json['username'],
-      password: json['password'],
-      body: json['body'],
     );
   }
 }
