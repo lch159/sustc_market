@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:sustc_market/main.dart';
 import 'package:sustc_market/pages/Register.dart';
@@ -34,25 +36,47 @@ class _LoginPageState extends State<LoginPage> {
   void _formSubmitted() async {
     var _form = _loginFormKey.currentState;
 
-    FormData loginFormData = new FormData.from({
-      "name": _isEmail ? "-1" : _loginName,
-      "email": _isEmail ? _loginName : "-1",
-      "password": _password,
-    });
-
     if (_form.validate()) {
+      FormData loginFormData = new FormData.from({
+        "username": _isEmail ? "-1" : _loginName,
+        "email": _isEmail ? _loginName : "-1",
+        "password": _password,
+      });
+
       _form.save();
       Dio dio = new Dio();
+      print(loginFormData);
       Response response = await dio.get(
           "http://120.79.232.137:8080/helloSSM/user/login",
           data: loginFormData);
-      if (response.statusCode == 200) {
+      Map data = json.decode(response.data);
+      print(data["returncode"]);
+
+      if (data["returncode"] == "200") {
         Navigator.of(context).push(MaterialPageRoute(
           builder: (context) {
             //指定跳转的页面
             return MainPage();
           },
         ));
+      } else {
+        passwordController.clear();
+        showDialog<Null>(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: Text('账号或密码错误'),
+              actions: <Widget>[
+                FlatButton(
+                  child: Text('确定'),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                ),
+              ],
+            );
+          },
+        );
       }
     }
   }
@@ -178,7 +202,9 @@ class _LoginPageState extends State<LoginPage> {
     else if (regExpUsername.hasMatch(val))
       return "用户名仅支持字母数字和下划线";
     else
-      return null;
+      _loginName = val;
+
+    return null;
   }
 
   String passwordValidator(String val) {
@@ -189,7 +215,9 @@ class _LoginPageState extends State<LoginPage> {
     else if (val.length < 6)
       return "密码长度不能小于6位";
     else
-      return null;
+      _password = val;
+
+    return null;
   }
 
   Row buildLoginStateRow(BuildContext context) {

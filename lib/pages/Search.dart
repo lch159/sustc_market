@@ -8,6 +8,10 @@ class SearchPage extends StatefulWidget {
 }
 
 class _SearchPageState extends State<SearchPage> {
+
+  List<HistoryRow> _history = new List<HistoryRow>();
+  TextEditingController searchController = new TextEditingController();
+
   @override
   Widget build(BuildContext context) {
     // TODO: implement build
@@ -22,7 +26,7 @@ class _SearchPageState extends State<SearchPage> {
         title: Padding(
           padding: const EdgeInsets.only(top: 10.0, bottom: 10.0),
           child: TextField(
-            controller: TextEditingController(),
+            controller: searchController,
             decoration: InputDecoration(
               filled: true,
               fillColor: Colors.white,
@@ -35,9 +39,13 @@ class _SearchPageState extends State<SearchPage> {
                 onPressed: () {},
               ),
             ),
+            onEditingComplete: () {
+              setState(() {
+                _history.add(HistoryRow(text: searchController.text));
+              });
+            },
           ),
         ),
-        actions: <Widget>[Icon(Icons.format_list_bulleted)],
       ),
       body: Column(
         children: <Widget>[
@@ -115,7 +123,6 @@ class _SearchPageState extends State<SearchPage> {
               ),
             ],
           ),
-//          Divider(color: Colors.black45,),
           Container(
             margin: EdgeInsets.only(top: 10.0, bottom: 10.0),
             height: 10.0,
@@ -132,47 +139,13 @@ class _SearchPageState extends State<SearchPage> {
             ),
           ),
           Divider(),
-          Align(
-            alignment: FractionalOffset.centerLeft,
-            child: Padding(
-              padding: EdgeInsets.only(left: 20.0, top: 5.0, bottom: 5.0),
-              child: Text(
-                "历史纪录1",
-                style: TextStyle(color: Colors.black45),
-              ),
-            ),
+          Column(
+            children:_history,
           ),
-          Divider(),
-          Align(
-            alignment: FractionalOffset.centerLeft,
-            child: Padding(
-              padding: EdgeInsets.only(left: 20.0, top: 5.0, bottom: 5.0),
-              child: Text(
-                "历史纪录2",
-                style: TextStyle(color: Colors.black45),
-              ),
-            ),
-          ),
-          Divider(),
-
-          Align(
-            alignment: FractionalOffset.centerLeft,
-            child: Padding(
-              padding: EdgeInsets.only(left: 20.0, top: 5.0, bottom: 5.0),
-              child: Text(
-                "历史纪录3",
-                style: TextStyle(color: Colors.black45),
-              ),
-            ),
-          ),
-          Divider(),
 
           Container(
             margin: EdgeInsets.only(top: 15.0),
             padding: EdgeInsets.all(5.0),
-//            decoration: BoxDecoration(
-//                color: Colors.grey,
-//                borderRadius: BorderRadius.circular(90.0)),
             child: OutlineButton(
               borderSide: BorderSide(color: Colors.grey),
               child: Text(
@@ -191,6 +164,9 @@ class _SearchPageState extends State<SearchPage> {
                         FlatButton(
                           child: Text('同意'),
                           onPressed: () {
+                            setState(() {
+                             _history.clear();
+                            });
                             Navigator.of(context).pop();
                           },
                         ),
@@ -210,6 +186,41 @@ class _SearchPageState extends State<SearchPage> {
         ],
       ),
       resizeToAvoidBottomPadding: true,
+    );
+  }
+}
+
+class HistoryRow extends StatefulWidget {
+  const HistoryRow({
+    Key key,
+    this.child,
+    this.text,
+  }) : super(key: key);
+  final Widget child;
+  final String text;
+
+  @override
+  _HistoryRowState createState() => _HistoryRowState();
+}
+
+class _HistoryRowState extends State<HistoryRow> {
+  @override
+  Widget build(BuildContext context) {
+    // TODO: implement build
+    return Column(
+      children: <Widget>[
+        Align(
+          alignment: Alignment.centerLeft,
+          child: Padding(
+            padding: EdgeInsets.only(left: 20.0, top: 5.0, bottom: 5.0),
+            child: Text(
+              widget.text,
+              style: TextStyle(color: Colors.black45),
+            ),
+          ),
+        ),
+        Divider(),
+      ],
     );
   }
 }

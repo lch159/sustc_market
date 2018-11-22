@@ -29,22 +29,38 @@ class _MainPageState extends State<MainPage> {
       appBar: AppBar(
         title: Padding(
           padding: const EdgeInsets.only(top: 10.0, bottom: 10.0),
-          child: TextField(
-            controller: TextEditingController(),
-            decoration: InputDecoration(
-              filled: true,
-              fillColor: Colors.white,
-              contentPadding: EdgeInsets.all(10.0),
-              border: OutlineInputBorder(
-                  borderRadius: BorderRadius.all(Radius.circular(90.0))),
-              prefixIcon: IconButton(
-                icon: Icon(Icons.search),
-                color: Colors.grey,
-                onPressed: () {
-                  Navigator.push(context,
-                      MaterialPageRoute(builder: (context) => SearchPage()));
-                },
-              ),
+          child: Container(
+            padding: EdgeInsets.symmetric(horizontal: 10.0),
+            decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.all(Radius.circular(90.0))),
+            child: Row(
+              children: <Widget>[
+                Expanded(
+                  child: IconButton(
+                    icon: Icon(Icons.search),
+                    color: Colors.black26,
+                    onPressed: () {
+                      Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => SearchPage()));
+                    },
+                  ),
+                ),
+                Expanded(
+                  child: FlatButton(
+                    onPressed: () {
+                      Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => SearchPage()));
+                    },
+                    child: null,
+                  ),
+                  flex: 10,
+                ),
+              ],
             ),
           ),
         ),
@@ -52,8 +68,8 @@ class _MainPageState extends State<MainPage> {
           IconButton(
             icon: Icon(Icons.file_upload),
             onPressed: () {
-              Navigator.push(
-                  context, MaterialPageRoute(builder: (context) => UploadPage()));
+              Navigator.push(context,
+                  MaterialPageRoute(builder: (context) => UploadPage()));
             },
           )
         ],
