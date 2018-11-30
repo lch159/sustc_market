@@ -32,6 +32,7 @@ dependencies:
   flutter_spinkit: "^3.0.0"
   flutter_cupertino_date_picker: "^0.1.0"
   json_serializable: ^0.5.4
+  flutter_countdown: ^0.1.4
 
 
 dev_dependencies:
@@ -41,7 +42,7 @@ dev_dependencies:
 
 # For information on the generic Dart part of this file, see the
 # following page: https://www.dartlang.org/tools/pub/pubspec
-  json_serializable: ^0.5.4
+
 # The following section is specific to Flutter.
 flutter:
 

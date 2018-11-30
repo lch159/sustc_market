@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:sustc_market/main.dart';
@@ -20,47 +22,51 @@ class _RegisterPageState extends State<RegisterPage> {
   TextEditingController authController = TextEditingController();
   GlobalKey<FormState> _registerFormKey = new GlobalKey<FormState>();
 
-  var _name;
+  var _username;
   var _password;
   var _repassword;
   var _email;
   var _auth;
 
-  bool _nameCorrect = false;
-  bool _passwordCorrect = false;
-  bool _repasswordCorrect = false;
-  bool _emailCorrect = false;
+  var _nameCorrect = false;
+  var _passwordCorrect = false;
+  var _rePasswordCorrect = false;
+  var _emailCorrect = false;
+
+  var _isPasswordObscure = true;
+  var _isRePasswordObscure = true;
+
+  var verifyText = '发送验证码';
+  var waitTime = 30;
 
   void _registerFormSubmitted() async {
     var _form = _registerFormKey.currentState;
 
     FormData registerFormData = new FormData.from({
-      "username": _name,
-      "password": _password,
-      "email": _email,
+      'username': nameController.text,
+      'password': passwordController.text,
+      'email': emailController.text,
     });
 
     if (_form.validate()) {
       _form.save();
       Dio dio = new Dio();
+      print(registerFormData);
       Response response = await dio.get(
-          "http://120.79.232.137:8080/SUSTechFM/register.jsp",
+          'http://120.79.232.137:8080/helloSSM/user/register',
           data: registerFormData);
+
+      Map data = json.decode(response.data);
+      print(data);
       if (response.statusCode != 200) {
         return showDialog<Null>(
           context: context,
           builder: (BuildContext context) {
             return AlertDialog(
-              title: Text('发送验证码失败'),
+              title: Text('无法连接到服务器，请检查网络'),
               actions: <Widget>[
                 FlatButton(
-                  child: Text('重新发送'),
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                ),
-                FlatButton(
-                  child: Text('取消'),
+                  child: Text('确定'),
                   onPressed: () {
                     Navigator.of(context).pop();
                   },
@@ -69,6 +75,82 @@ class _RegisterPageState extends State<RegisterPage> {
             );
           },
         );
+      } else {
+        verifyText = '$waitTime s后重新发送';
+        if (data['returncode'] == '200') {
+          return showDialog<Null>(
+            context: context,
+            builder: (BuildContext context) {
+              return AlertDialog(
+                title: Text('邮件发送成功，请前往学校邮箱查看'),
+                actions: <Widget>[
+                  FlatButton(
+                    child: Text('确定'),
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    },
+                  ),
+                ],
+              );
+            },
+          );
+        } else if (data['returncode'] == '201') {
+          var textVerify = '';
+          var textMessage = '';
+          switch (data['report']) {
+            case 'username duplicate':
+              textVerify = '重填用户名';
+              textMessage = '用户名已被使用,点击确定重新填写';
+              break;
+          }
+          return showDialog<Null>(
+            context: context,
+            builder: (BuildContext context) {
+              return AlertDialog(
+                title: Text(textMessage),
+                actions: <Widget>[
+                  FlatButton(
+                    child: Text(textVerify),
+                    onPressed: () {
+                      nameController.clear();
+                      Navigator.of(context).pop();
+                    },
+                  ),
+                  FlatButton(
+                    child: Text('取消'),
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    },
+                  ),
+                ],
+              );
+            },
+          );
+        } else {
+          return showDialog<Null>(
+            context: context,
+            builder: (BuildContext context) {
+              return AlertDialog(
+                title: Text('邮件发送失败'),
+                actions: <Widget>[
+                  FlatButton(
+                    child: Text('确定'),
+                    onPressed: () {
+                      emailController.clear();
+                      Navigator.of(context).pop();
+                    },
+                  ),
+                  FlatButton(
+                    child: Text('取消'),
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    },
+                  ),
+                ],
+              );
+            },
+          );
+        }
       }
     }
   }
@@ -76,26 +158,82 @@ class _RegisterPageState extends State<RegisterPage> {
   void _authSubmitted() async {
     var _form = _registerFormKey.currentState;
 
-    FormData registerFormData = new FormData.from({
-      "username": _name,
-      "password": _password,
-      "email": _email,
-      "auth": _auth,
+    FormData authFormData = new FormData.from({
+      'username': nameController.text,
+      'code': authController.text,
     });
 
     if (_form.validate()) {
       _form.save();
       Dio dio = new Dio();
+      print(authFormData);
       Response response = await dio.get(
-          "http://120.79.232.137:8080/SUSTechFM/register.jsp",
-          data: registerFormData);
+          'http://120.79.232.137:8080/helloSSM/user/emailLink',
+          data: authFormData);
+
+      Map data = json.decode(response.data);
+      print(data);
       if (response.statusCode != 200) {
-        Navigator.of(context).push(MaterialPageRoute(
-          builder: (context) {
-            //指定跳转的页面
-            return MainPage();
+        return showDialog<Null>(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: Text('无法连接到服务器，请检查网络'),
+              actions: <Widget>[
+                FlatButton(
+                  child: Text('确定'),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                ),
+              ],
+            );
           },
-        ));
+        );
+      } else {
+        if (data['returncode'] == '200') {
+          return showDialog<Null>(
+            context: context,
+            builder: (BuildContext context) {
+              return AlertDialog(
+                title: Text('注册成功!'),
+                actions: <Widget>[
+                  FlatButton(
+                    child: Text('确定'),
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                      Navigator.of(context).pop();
+                    },
+                  ),
+                ],
+              );
+            },
+          );
+        } else if (data['returncode'] == '201') {
+          return showDialog<Null>(
+            context: context,
+            builder: (BuildContext context) {
+              return AlertDialog(
+                title: Text('验证码错误'),
+                actions: <Widget>[
+                  FlatButton(
+                    child: Text('重新输入'),
+                    onPressed: () {
+                      authController.clear();
+                      Navigator.of(context).pop();
+                    },
+                  ),
+                  FlatButton(
+                    child: Text('取消'),
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    },
+                  ),
+                ],
+              );
+            },
+          );
+        }
       }
     }
   }
@@ -146,7 +284,6 @@ class _RegisterPageState extends State<RegisterPage> {
   TextFormField buildNameTextField(BuildContext context) {
     return TextFormField(
       controller: nameController,
-
       validator: (val) {
         return nameValidator(val);
       },
@@ -160,7 +297,7 @@ class _RegisterPageState extends State<RegisterPage> {
         labelText: '请输入你的用户名',
       ),
       onSaved: (val) {
-        _name = val;
+        _username = nameController.text;
       },
     );
   }
@@ -179,8 +316,18 @@ class _RegisterPageState extends State<RegisterPage> {
               )
             : Icon(Icons.lock),
         labelText: '请输入你的密码',
+        suffixIcon: IconButton(
+            icon: Icon(
+              Icons.remove_red_eye,
+              color: _isPasswordObscure ? Colors.black45 : Colors.blue,
+            ),
+            onPressed: () {
+              setState(() {
+                _isPasswordObscure = !_isPasswordObscure;
+              });
+            }),
       ),
-      obscureText: true,
+      obscureText: _isPasswordObscure,
       onSaved: (val) {
         _password = val;
       },
@@ -194,15 +341,25 @@ class _RegisterPageState extends State<RegisterPage> {
         return repasswordValidator(val);
       },
       decoration: InputDecoration(
-        prefixIcon: _repasswordCorrect
+        prefixIcon: _rePasswordCorrect
             ? Icon(
                 Icons.check,
                 color: Colors.green,
               )
             : Icon(Icons.lock),
         labelText: '重复输入密码',
+        suffixIcon: IconButton(
+            icon: Icon(
+              Icons.remove_red_eye,
+              color: _isRePasswordObscure ? Colors.black45 : Colors.blue,
+            ),
+            onPressed: () {
+              setState(() {
+                _isRePasswordObscure = !_isRePasswordObscure;
+              });
+            }),
       ),
-      obscureText: true,
+      obscureText: _isRePasswordObscure,
       onSaved: (val) {
         _repassword = val;
       },
@@ -233,16 +390,19 @@ class _RegisterPageState extends State<RegisterPage> {
           flex: 2,
         ),
         Expanded(
-          child: OutlineButton(
-            borderSide: BorderSide(color: Theme.of(context).primaryColor),
-            onPressed: () {
-              _registerFormSubmitted();
-            },
-            child: Text(
-              '发送验证码',
-              style: TextStyle(
-                  color: Theme.of(context).primaryColor, fontSize: 13.0),
+          child: Padding(
+            child: OutlineButton(
+              borderSide: BorderSide(color: Theme.of(context).primaryColor),
+              onPressed: () {
+                _registerFormSubmitted();
+              },
+              child: Text(
+                '发送验证码',
+                style: TextStyle(
+                    color: Theme.of(context).primaryColor, fontSize: 13.0),
+              ),
             ),
+            padding: EdgeInsets.only(left: 5.0),
           ),
           flex: 1,
         )
@@ -269,62 +429,6 @@ class _RegisterPageState extends State<RegisterPage> {
     );
   }
 
-  String nameValidator(String val) {
-    val = val.trim();
-    RegExp regExpUsername = new RegExp(r'[^a-zA-Z0-9_]');
-    _nameCorrect = false;
-    if (val.length == 0)
-      return "用户名不能为空";
-    else if (val.length < 6)
-      return "用户名不能小于3个汉字或6位字符";
-    else if (val.length > 18)
-      return "用户名不能大与9个汉字或18位字符";
-    else if (regExpUsername.hasMatch(val))
-      return "用户名仅支持字母数字和下划线";
-    else
-      _nameCorrect = true;
-    return null;
-  }
-
-  String passwordValidator(String val) {
-    val = val.trim();
-    _passwordCorrect = false;
-    if (val.length == 0)
-      return "密码不能为空";
-    else if (val.length < 6)
-      return "密码长度不能小于6位";
-    else
-      _passwordCorrect = true;
-    return null;
-  }
-
-  String repasswordValidator(String val) {
-    val = val.trim();
-    _repasswordCorrect = false;
-    if (val.length == 0)
-      return "重复密码不能为空";
-    else if (val.length < 6)
-      return "密码长度不能小于6位";
-    else if (passwordController.text != repasswordController.text)
-      return "两次密码不相同";
-    else
-      _repasswordCorrect = true;
-    return null;
-  }
-
-  String emailValidator(String val) {
-    val = val.trim();
-    RegExp regExpEmail = new RegExp(r'@mail.sustc.edu.cn$');
-    _emailCorrect = false;
-    if (val.length == 0)
-      return "邮箱不能为空";
-    else if (!regExpEmail.hasMatch(val))
-      return "请输入学校提供的邮箱";
-    else
-      _emailCorrect = true;
-    return null;
-  }
-
   Container buildRegisterButton(BuildContext context) {
     return Container(
       constraints: BoxConstraints.expand(
@@ -341,6 +445,67 @@ class _RegisterPageState extends State<RegisterPage> {
         ),
       ),
     );
+  }
+
+  String nameValidator(String val) {
+    val = val.trim();
+    RegExp regExpUsername = new RegExp(r'[^a-zA-Z0-9_]');
+    _nameCorrect = false;
+    if (val.length == 0)
+      return '用户名不能为空';
+    else if (val.length < 6)
+      return '用户名不能小于3个汉字或6位字符';
+    else if (val.length > 18)
+      return '用户名不能大与9个汉字或18位字符';
+    else if (regExpUsername.hasMatch(val))
+      return '用户名仅支持字母数字和下划线';
+    else
+      _nameCorrect = true;
+    return null;
+  }
+
+  String passwordValidator(String val) {
+    val = val.trim();
+    _passwordCorrect = false;
+    if (val.length == 0)
+      return '密码不能为空';
+    else if (val.length < 6)
+      return '密码长度不能小于6位';
+    else if (val.length > 18)
+      return '密码长度不能大于18位';
+    else if (val.length > 18)
+      return '密码不能是纯数字';
+    else
+      _passwordCorrect = true;
+    return null;
+  }
+
+  String repasswordValidator(String val) {
+    val = val.trim();
+    _rePasswordCorrect = false;
+    if (val.length == 0)
+      return '重复密码不能为空';
+    else if (val.length < 6)
+      return '密码长度不能小于6位';
+    else if (passwordController.text != repasswordController.text)
+      return '两次密码不相同';
+    else
+      _rePasswordCorrect = true;
+    return null;
+  }
+
+  String emailValidator(String val) {
+    val = val.trim();
+    RegExp regExpEmail =
+        new RegExp(r'@mail.sustc.edu.cn$|@sustc.edu.cn$|@pub.sustc.edu.cn$');
+    _emailCorrect = false;
+    if (val.length == 0)
+      return '邮箱不能为空';
+    else if (!regExpEmail.hasMatch(val))
+      return '请输入学校提供的邮箱';
+    else
+      _emailCorrect = true;
+    return null;
   }
 }
 

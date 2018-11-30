@@ -20,13 +20,11 @@ class _LoginPageState extends State<LoginPage> {
 
   var _isRemember = false;
   var _isAuto = false;
-  bool _isObscure = true;
-  Color _eyeColor;
+  var _isObscure = true;
+
   GlobalKey<FormState> _loginFormKey = new GlobalKey<FormState>();
   GlobalKey<FormState> _loginViewKey = new GlobalKey<FormState>();
 
-  String _loginName;
-  String _password;
 
   bool _isEmail = false;
 
@@ -38,34 +36,23 @@ class _LoginPageState extends State<LoginPage> {
 
     if (_form.validate()) {
       FormData loginFormData = new FormData.from({
-        "username": _isEmail ? "-1" : _loginName,
-        "email": _isEmail ? _loginName : "-1",
-        "password": _password,
+        "username": _isEmail ? "-1" : nameController.text,
+        "email": _isEmail ? nameController.text : "-1",
+        "password": passwordController.text,
       });
 
       _form.save();
       Dio dio = new Dio();
-      print(loginFormData);
       Response response = await dio.get(
           "http://120.79.232.137:8080/helloSSM/user/login",
           data: loginFormData);
       Map data = json.decode(response.data);
-      print(data["returncode"]);
-
-      if (data["returncode"] == "200") {
-        Navigator.of(context).push(MaterialPageRoute(
-          builder: (context) {
-            //指定跳转的页面
-            return MainPage();
-          },
-        ));
-      } else {
-        passwordController.clear();
-        showDialog<Null>(
+      if (response.statusCode != 200) {
+        return showDialog<Null>(
           context: context,
           builder: (BuildContext context) {
             return AlertDialog(
-              title: Text('账号或密码错误'),
+              title: Text('无法连接到服务器，请检查网络'),
               actions: <Widget>[
                 FlatButton(
                   child: Text('确定'),
@@ -77,6 +64,33 @@ class _LoginPageState extends State<LoginPage> {
             );
           },
         );
+      } else {
+        if (data["returncode"] == "200") {
+          Navigator.of(context).push(MaterialPageRoute(
+            builder: (context) {
+              //指定跳转的页面
+              return MainPage();
+            },
+          ));
+        } else {
+          passwordController.clear();
+          showDialog<Null>(
+            context: context,
+            builder: (BuildContext context) {
+              return AlertDialog(
+                title: Text('账号或密码错误'),
+                actions: <Widget>[
+                  FlatButton(
+                    child: Text('确定'),
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    },
+                  ),
+                ],
+              );
+            },
+          );
+        }
       }
     }
   }
@@ -150,9 +164,6 @@ class _LoginPageState extends State<LoginPage> {
         prefixIcon: Icon(Icons.person),
         labelText: '请输入你的用户名或邮箱',
       ),
-      onSaved: (val) {
-        _loginName = val;
-      },
     );
   }
 
@@ -162,16 +173,13 @@ class _LoginPageState extends State<LoginPage> {
       validator: (val) {
         return passwordValidator(val);
       },
-      onSaved: (val) {
-        _password = val;
-      },
       decoration: InputDecoration(
         prefixIcon: Icon(Icons.lock),
         labelText: '请输入你的密码',
         suffixIcon: IconButton(
             icon: Icon(
               Icons.remove_red_eye,
-              color: _eyeColor,
+              color: _isObscure ? Colors.black45 : Colors.blue,
             ),
             onPressed: () {
               setState(() {
@@ -202,9 +210,7 @@ class _LoginPageState extends State<LoginPage> {
     else if (regExpUsername.hasMatch(val))
       return "用户名仅支持字母数字和下划线";
     else
-      _loginName = val;
-
-    return null;
+      return null;
   }
 
   String passwordValidator(String val) {
@@ -215,9 +221,7 @@ class _LoginPageState extends State<LoginPage> {
     else if (val.length < 6)
       return "密码长度不能小于6位";
     else
-      _password = val;
-
-    return null;
+      return null;
   }
 
   Row buildLoginStateRow(BuildContext context) {

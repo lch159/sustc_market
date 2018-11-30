@@ -125,6 +125,13 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.0"
+  flutter_countdown:
+    dependency: "direct main"
+    description:
+      name: flutter_countdown
+      url: "https://pub.flutter-io.cn"
+    source: hosted
+    version: "0.1.4"
   flutter_cupertino_date_picker:
     dependency: "direct main"
     description:
@@ -222,7 +229,7 @@ packages:
     source: hosted
     version: "2.0.9"
   json_serializable:
-    dependency: "direct dev"
+    dependency: "direct main"
     description:
       name: json_serializable
       url: "https://pub.flutter-io.cn"
