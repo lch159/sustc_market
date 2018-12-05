@@ -38,34 +38,34 @@ class _SearchPageState extends State<SearchPage> {
           child: TextField(
             controller: searchController,
             decoration: InputDecoration(
-                filled: true,
-                fillColor: Colors.white,
-                contentPadding: EdgeInsets.all(10.0),
-                border: OutlineInputBorder(
-                    borderRadius: BorderRadius.all(Radius.circular(90.0))),
-                suffixIcon: _hasdeleteIcon
-                    ? new Container(
-                        width: 20.0,
-                        height: 20.0,
-                        child: new IconButton(
-                          alignment: Alignment.center,
-                          padding: const EdgeInsets.all(0.0),
-                          iconSize: 18.0,
-                          icon: Icon(Icons.cancel),
-                          color: Colors.grey,
-                          onPressed: () {
-                            setState(() {
-                              searchController.text = "";
-                              _hasdeleteIcon =
-                                  (searchController.text.isNotEmpty);
-                            });
-                          },
-                        ),
-                      )
-                    : new Icon(
-                        Icons.search,
+              filled: true,
+              fillColor: Colors.white,
+              contentPadding: EdgeInsets.all(10.0),
+              border: OutlineInputBorder(
+                  borderRadius: BorderRadius.all(Radius.circular(90.0))),
+              suffixIcon: _hasdeleteIcon
+                  ? new Container(
+                      width: 20.0,
+                      height: 20.0,
+                      child: new IconButton(
+                        alignment: Alignment.center,
+                        padding: const EdgeInsets.all(0.0),
+                        iconSize: 18.0,
+                        icon: Icon(Icons.cancel),
                         color: Colors.grey,
-                      )),
+                        onPressed: () {
+                          setState(() {
+                            searchController.text = "";
+                            _hasdeleteIcon = (searchController.text.isNotEmpty);
+                          });
+                        },
+                      ),
+                    )
+                  : new Icon(
+                      Icons.search,
+                      color: Colors.grey,
+                    ),
+            ),
             autofocus: true,
             onEditingComplete: () {
               setState(() {
@@ -265,16 +265,16 @@ class _HistoryRowState extends State<HistoryRow> {
                   widget.text,
                   style: TextStyle(color: Colors.black45),
                 ),
-                IconButton(
-                  padding: EdgeInsets.all(0.0),
-                  iconSize: 15.0,
-                  color: Colors.black45,
-                  icon: Icon(Icons.clear),
-                  onPressed: () {
+//                IconButton(
+//                  padding: EdgeInsets.all(0.0),
+//                  iconSize: 15.0,
+//                  color: Colors.black45,
+//                  icon: Icon(Icons.clear),
+//                  onPressed: () {
 //                    _historySet.remove(widget.text);
 //                    _historyList.remove(_historyList.indexOf())
-                  },
-                )
+//                  },
+//                )
               ],
             ),
           ),

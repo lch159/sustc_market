@@ -195,15 +195,12 @@ class _SelectPageState extends State<SelectPage> {
         },
         onRefresh: (up) {
           if (up) {
-
             new Future.delayed(const Duration(milliseconds: 2000)).then((val) {
               upgradeItems();
               _refreshController.sendBack(true, RefreshStatus.failed);
             });
           }
           else {
-
-
           }
         },
         controller: _refreshController,
