@@ -1,3 +1,6 @@
+import 'dart:convert';
+
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
 import 'package:sustc_market/pages/Production.dart';
@@ -38,6 +41,64 @@ class _SelectPageState extends State<SelectPage> {
   String _priceTo = '最高价格';
   String _dateFrom = '起始日期';
   String _dateTo = '最后日期';
+
+  List<ProductionCard> items = new List<ProductionCard>();
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    upgradeItems();
+  }
+
+  void upgradeItems() async {
+    Dio dio = new Dio();
+    Response response = await dio
+        .get("http://120.79.232.137:8080/helloSSM/dommodity/selectAll");
+
+    Map<String, dynamic> data = response.data;
+    if (response.statusCode != 200) {
+      return showDialog<Null>(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text('无法连接到服务器，请检查网络'),
+            actions: <Widget>[
+              FlatButton(
+                child: Text('确定'),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+            ],
+          );
+        },
+      );
+    } else {
+      if (data["returncode"] == "200") {
+        var number = int.parse(data["dommoditynumber"]);
+        items = new List<ProductionCard>();
+
+        for (int i = 0; i < number; i++) {
+          Map<String, dynamic> item = data["dommoditylist"][i];
+          print(item.toString());
+
+          items.insert(0,ProductionCard(
+            imagePath: "images/LOGO/1x/logo_mdpi.jpg",
+            title: item["name"],
+            description: item["description"],
+            owner: item["owner"],
+            status: item["status"],
+            putAwayTime: item["putawayTime"],
+            availableTime: item["availableTime"],
+            price: item["price"],
+            address: item["address"],
+            payment: item["paytype"],
+          ));
+        }
+      }
+    }
+  }
 
   void filterChangedTo(int filter, int subFilter) {
     switch (filter) {
@@ -133,15 +194,16 @@ class _SelectPageState extends State<SelectPage> {
           );
         },
         onRefresh: (up) {
-          if (up)
+          if (up) {
+
             new Future.delayed(const Duration(milliseconds: 2000)).then((val) {
+              upgradeItems();
               _refreshController.sendBack(true, RefreshStatus.failed);
             });
+          }
           else {
-            new Future.delayed(const Duration(milliseconds: 2000)).then((val) {
-              setState(() {});
-              _refreshController.sendBack(false, RefreshStatus.completed);
-            });
+
+
           }
         },
         controller: _refreshController,
@@ -151,72 +213,16 @@ class _SelectPageState extends State<SelectPage> {
         ),
         enableOverScroll: true,
         child: ListView(
-          children: <Widget>[
+          children:
+            <Widget>[
             buildTabRow(context),
             Divider(),
             buildDefaultFilter(context),
             buildPriceFilter(context),
             buildTimeFilter(context),
-
-            ProductionCard(
-              imagePath: 'images/tempItems/p1.jpg',
-              title: '出顾家北手把手教你雅思写作',
-              price: '20',
-              status: '',
-              area: '湖畔',
-              owner: '1511XXX',
+            Column(
+              children: items,
             ),
-            ProductionCard(
-              imagePath: 'images/tempItems/p2.png',
-              title: '收一个USB转串口数据线',
-              price: '面议',
-              status: '',
-              area: '湖畔',
-              owner: '1517XXX',
-            ),
-            ProductionCard(
-              imagePath: 'images/tempItems/p3.jpg',
-              title: '出外星人17r3 配置如图',
-              price: '面议',
-              status: '',
-              area: '湖畔',
-              owner: '14XXXXXX',
-            ),
-            ProductionCard(
-              imagePath: 'images/tempItems/p5.jpg',
-              title: '收这本书',
-              price: '40',
-              status: '',
-              area: '湖畔',
-              owner: '1511XXX',
-            ),
-            ProductionCard(
-              imagePath: 'images/tempItems/p6.jpg',
-              title: '出一瓶这个',
-              price: '45',
-              status: '',
-              area: '湖畔',
-              owner: '18XXXXX',
-            ),
-            ProductionCard(
-              imagePath: 'images/tempItems/p7.png',
-              title: '试收一颗这个型号的纽扣电池',
-              price: '10',
-              status: '',
-              area: '湖畔',
-              owner: '1511XXX',
-            ),
-            ProductionCard(
-              imagePath: 'images/tempItems/p8.jpg',
-              title: '代购YPL瘦腿裤薄款180秋冬加厚款210',
-              price: '180',
-              status: '',
-              area: '湖畔',
-              owner: '1627XXX',
-            ),
-//          ListView.builder(itemBuilder: (context, index){
-//          return ProductionCard()
-//          })
           ],
         ),
       ),
@@ -727,18 +733,26 @@ class ProductionCard extends StatefulWidget {
     this.title,
     this.imagePath,
     this.price,
-    this.area,
+    this.address,
     this.owner,
     this.status,
+    this.putAwayTime,
+    this.payment,
+    this.description,
+    this.availableTime,
   }) : super(key: key);
 
   final Widget child;
   final String imagePath;
-  final String title;
-  final String price;
   final String status;
-  final String area;
   final String owner;
+  final String putAwayTime;
+  final String availableTime;
+  final String address;
+  final String price;
+  final String payment;
+  final String title;
+  final String description;
 
   @override
   _ProductionCardState createState() => _ProductionCardState();
@@ -757,7 +771,7 @@ class _ProductionCardState extends State<ProductionCard> {
                 width: 96.0,
                 height: 96.0,
                 child: Image.asset(
-                  widget.imagePath,
+                  'images/LOGO/1.5x/logo_hdpi.png',
                   fit: BoxFit.cover,
                 ),
               ),
@@ -793,12 +807,15 @@ class _ProductionCardState extends State<ProductionCard> {
                                 TextSpan(
                                   text: widget.price,
                                   style: TextStyle(
-                                      fontSize: 18.0, color: Colors.red),
+                                      fontSize: 20.0, color: Colors.red),
                                 ),
                                 TextSpan(
-                                  text: widget.status + '   ' + widget.area,
+                                  text: '   ' +
+                                      widget.status +
+                                      '   ' +
+                                      widget.address,
                                   style: TextStyle(
-                                      fontSize: 15.0, color: Colors.black45),
+                                      fontSize: 12.0, color: Colors.black38),
                                 ),
                               ]),
                         ),
@@ -826,7 +843,17 @@ class _ProductionCardState extends State<ProductionCard> {
             Navigator.of(context).push(MaterialPageRoute(
               builder: (context) {
                 //指定跳转的页面
-                return ProductionPage();
+                return ProductionPage(
+                  title: widget.title,
+                  description: widget.description,
+                  owner: widget.owner,
+//                  status:widget.status,
+                  putAwayTime: widget.putAwayTime,
+//                  availableTime: widget.availableTime,
+                  price: widget.price,
+                  address: widget.address,
+                  payment: widget.payment,
+                );
               },
             ));
           },

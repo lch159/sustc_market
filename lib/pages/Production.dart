@@ -1,6 +1,25 @@
 import 'package:flutter/material.dart';
 
 class ProductionPage extends StatefulWidget {
+  String owner;
+  String putAwayTime;
+  String address;
+  String price;
+  String payment;
+  String title;
+  String description;
+
+  ProductionPage({
+    Key key,
+    this.owner,
+    this.putAwayTime,
+    this.address,
+    this.price,
+    this.payment,
+    this.title,
+    this.description,
+  }) : super(key: key);
+
   @override
   State<StatefulWidget> createState() {
     return _ProductionPageState();
@@ -9,6 +28,40 @@ class ProductionPage extends StatefulWidget {
 
 class _ProductionPageState extends State<ProductionPage> {
   bool _isFloatButton = false;
+
+  String getParseInfo() {
+    var _date = widget.putAwayTime.split(new RegExp(r"[/-]"));
+
+    return _date[0] +
+        "年" +
+        _date[1] +
+        "月" +
+        _date[2] +
+        "日" +
+        _date[3] +
+        "发布于" +
+        widget.address;
+  }
+
+  bool _isWechat = false;
+  bool _isAlipay = false;
+  bool _isCash = false;
+  bool _isOthers = false;
+
+  void parsePayment() {
+    var _payments = widget.payment.split(",");
+    if (_payments.contains("微信")) _isWechat = true;
+    if (_payments.contains("支付宝")) _isAlipay = true;
+    if (_payments.contains("现金")) _isCash = true;
+    if (_payments.contains("其他")) _isOthers = true;
+  }
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    parsePayment();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -22,7 +75,6 @@ class _ProductionPageState extends State<ProductionPage> {
             child: GestureDetector(
               onTap: () {
                 _isFloatButton = !_isFloatButton;
-
               },
               child: Container(
                 color: Colors.black12,
@@ -72,11 +124,11 @@ class _ProductionPageState extends State<ProductionPage> {
   ListTile buildOwnerRow(BuildContext context) {
     return ListTile(
       title: Text(
-        'UserName',
+        widget.owner,
         style: TextStyle(fontWeight: FontWeight.w700, fontSize: 20.0),
       ),
       subtitle: Text(
-        '2018年08月08日 18:88 发布于 湖畔三栋',
+        getParseInfo(),
         style: TextStyle(fontWeight: FontWeight.w400),
       ),
       leading: Container(
@@ -105,7 +157,7 @@ class _ProductionPageState extends State<ProductionPage> {
               style: TextStyle(fontSize: 15.0, color: Colors.red),
               children: <TextSpan>[
                 TextSpan(
-                  text: "6499.00",
+                  text: widget.price,
                   style: TextStyle(
                       fontSize: 25.0,
                       color: Colors.red,
@@ -115,48 +167,16 @@ class _ProductionPageState extends State<ProductionPage> {
             ),
           ),
         ),
-        Container(
-          margin: EdgeInsets.symmetric(horizontal: 5.0),
-          decoration: BoxDecoration(
-              borderRadius: BorderRadius.all(Radius.circular(90.0)),
-              color: Colors.green),
-          width: 30.0,
-          height: 30.0,
-          child: Center(
-            child: Text(
-              "微",
-              style: TextStyle(color: Colors.white),
-            ),
-          ),
-        ),
-        Container(
-          margin: EdgeInsets.symmetric(horizontal: 5.0),
-          decoration: BoxDecoration(
-              borderRadius: BorderRadius.all(Radius.circular(90.0)),
-              color: Colors.blue),
-          width: 30.0,
-          height: 30.0,
-          child: Center(
-            child: Text(
-              "支",
-              style: TextStyle(color: Colors.white),
-            ),
-          ),
-        ),
-        Container(
-          margin: EdgeInsets.symmetric(horizontal: 5.0),
-          decoration: BoxDecoration(
-              borderRadius: BorderRadius.all(Radius.circular(90.0)),
-              color: Colors.red),
-          width: 30.0,
-          height: 30.0,
-          child: Center(
-            child: Text(
-              "现",
-              style: TextStyle(color: Colors.white),
-            ),
-          ),
-        ),
+        _isWechat
+            ? buildPaymentContainer(context, "微", Colors.green)
+            : Container(),
+        _isAlipay
+            ? buildPaymentContainer(context, "支", Colors.blue)
+            : Container(),
+        _isCash ? buildPaymentContainer(context, "现", Colors.red) : Container(),
+        _isOthers
+            ? buildPaymentContainer(context, "+", Colors.grey)
+            : Container(),
       ],
     );
   }
@@ -166,8 +186,26 @@ class _ProductionPageState extends State<ProductionPage> {
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 10.0),
       child: Text(
-        "Apple/苹果 11 英寸 iPad Pro",
+        widget.title,
         style: TextStyle(fontWeight: FontWeight.w700, fontSize: 23.0),
+      ),
+    );
+  }
+
+  //生成支付Container
+  Container buildPaymentContainer(
+      BuildContext context, String text, Color color) {
+    return Container(
+      margin: EdgeInsets.symmetric(horizontal: 5.0),
+      decoration: BoxDecoration(
+          borderRadius: BorderRadius.all(Radius.circular(90.0)), color: color),
+      width: 30.0,
+      height: 30.0,
+      child: Center(
+        child: Text(
+          text,
+          style: TextStyle(color: Colors.white),
+        ),
       ),
     );
   }
@@ -177,10 +215,7 @@ class _ProductionPageState extends State<ProductionPage> {
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 10.0),
       child: Text(
-        "新一代 iPad Pro，全面新生。全新，全面屏，全方位强大。\r\n"
-            "精致设计最薄的 iPad 中，深藏先进技术。Liquid 视网膜显示屏。\r\n"
-            "绚丽的色彩，流畅的响应，在各种光线下阅读都舒服。\r\n"
-            "面容 ID无论横向纵向，都能解锁 iPad、登录各款 App，还能扫一眼就支付。\r\n",
+        widget.description,
         style: TextStyle(fontWeight: FontWeight.w300, fontSize: 19.0),
       ),
     );
@@ -192,10 +227,10 @@ class _ProductionPageState extends State<ProductionPage> {
       padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 10.0),
       child: Column(
         children: <Widget>[
-          Image.asset("images/TempProductionImage/pro1.jpg"),
-          Image.asset("images/TempProductionImage/pro2.jpg"),
-          Image.asset("images/TempProductionImage/pro3.jpg"),
-          Image.asset("images/TempProductionImage/pro4.jpg"),
+//          Image.asset("images/TempProductionImage/pro1.jpg"),
+//          Image.asset("images/TempProductionImage/pro2.jpg"),
+//          Image.asset("images/TempProductionImage/pro3.jpg"),
+//          Image.asset("images/TempProductionImage/pro4.jpg"),
         ],
       ),
     );
@@ -225,14 +260,18 @@ class _ProductionPageState extends State<ProductionPage> {
               Align(
                 alignment: Alignment.centerLeft,
                 child: Text(
-                  "能小刀吗？",
-                  style: TextStyle(fontWeight: FontWeight.w300, fontSize: 20.0,color: Colors.black),
+                  "Comment",
+                  style: TextStyle(
+                      fontWeight: FontWeight.w300,
+                      fontSize: 20.0,
+                      color: Colors.black),
                 ),
               ),
               Align(
                 alignment: Alignment.centerLeft,
                 child: Text("8/10   全部回复",
-                    style: TextStyle(fontWeight: FontWeight.w300, fontSize: 15.0)),
+                    style:
+                        TextStyle(fontWeight: FontWeight.w300, fontSize: 15.0)),
               )
             ],
           ),

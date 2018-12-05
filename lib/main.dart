@@ -1,14 +1,22 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:path/path.dart';
+import 'package:redux/redux.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:sustc_market/Utils/redux/Store.dart';
+import 'package:sustc_market/pages/Production.dart';
 import 'package:sustc_market/pages/Search.dart';
 import 'package:sustc_market/pages/Login.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:sustc_market/pages/Select.dart';
 import 'package:sustc_market/pages/Upload.dart';
+import 'package:sustc_market/Utils/redux/Reducer.dart';
 
 void main() {
   runApp(MaterialApp(
     title: 'SUSTech Market',
     home: MainPage(),
+//    store: store,
   ));
 }
 
@@ -19,64 +27,253 @@ class MainPage extends StatefulWidget {
   }
 }
 
+List<ItemRow> itemRows;
+
 class _MainPageState extends State<MainPage> {
   int tabIndex = 0;
   var bodies = [HomePage(), NeighborPage(), MessagePage()];
+
+  iniLoginInfo() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    prefs.setString("isLogin", "0");
+    prefs.setString("temporaryid", "-1");
+  }
+
+  Future<String> checkLogin() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    var isLogin = prefs.getString("isLogin");
+
+    return isLogin;
+  }
+
+  Future<String> getTempID() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    var tempID = prefs.getString("temporaryid");
+    return tempID;
+  }
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    itemRows = new List<ItemRow>();
+    upgradeItems();
+    super.initState();
+  }
+
+  void upgradeItems() async {
+    Dio dio = new Dio();
+    Response response = await dio
+        .get("http://120.79.232.137:8080/helloSSM/dommodity/selectAll");
+
+    Map<String, dynamic> data = response.data;
+    if (response.statusCode != 200) {
+      return showDialog<Null>(
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text('无法连接到服务器，请检查网络'),
+            actions: <Widget>[
+              FlatButton(
+                child: Text('确定'),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+            ],
+          );
+        },
+        context: null,
+      );
+    } else {
+      if (data["returncode"] == "200") {
+        var number = int.parse(data["dommoditynumber"]);
+        itemRows = new List<ItemRow>();
+
+        for (int i = 0; i < number;) {
+          Map<String, dynamic> litem = data["dommoditylist"][i];
+          Map<String, dynamic> ritem;
+          if (i + 1 < number) ritem = data["dommoditylist"][i + 1];
+
+          print(litem.toString());
+          print(ritem.toString());
+
+          itemRows.insert(
+              0,
+              ItemRow(
+                lchild: ItemCard(
+                  imagePath: "images/LOGO/1x/logo_mdpi.jpg",
+                  title: litem["name"],
+                  description: litem["description"],
+                  owner: litem["owner"],
+                  status: litem["status"],
+                  putAwayTime: litem["putawayTime"],
+                  availableTime: litem["availableTime"],
+                  price: litem["price"],
+                  address: litem["address"],
+                  payment: litem["paytype"],
+                ),
+                rchild: i + 1 < number
+                    ? ItemCard(
+                        imagePath: "images/LOGO/1x/logo_mdpi.jpg",
+                        title: ritem["name"],
+                        description: ritem["description"],
+                        owner: ritem["owner"],
+                        status: ritem["status"],
+                        putAwayTime: ritem["putawayTime"],
+                        availableTime: ritem["availableTime"],
+                        price: ritem["price"],
+                        address: ritem["address"],
+                        payment: ritem["paytype"],
+                      )
+                    : ItemCard(
+                        title: "标题",
+                        price: "价格",
+                      ),
+              ));
+          i += 2;
+        }
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Padding(
-          padding: const EdgeInsets.only(top: 10.0, bottom: 10.0),
-          child: Container(
-            padding: EdgeInsets.symmetric(horizontal: 10.0),
-            decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.all(Radius.circular(90.0))),
-            child: Row(
-              children: <Widget>[
-                Expanded(
-                  child: IconButton(
-                    icon: Icon(Icons.search),
-                    color: Colors.black26,
-                    onPressed: () {
-                      Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => SearchPage()));
-                    },
+          title: Padding(
+            padding: const EdgeInsets.only(top: 10.0, bottom: 10.0),
+            child: Container(
+              padding: EdgeInsets.symmetric(horizontal: 10.0),
+              decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.all(Radius.circular(90.0))),
+              child: Row(
+                children: <Widget>[
+                  Expanded(
+                    child: IconButton(
+                      icon: Icon(Icons.search),
+                      color: Colors.black26,
+                      onPressed: () {
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => SearchPage()));
+                      },
+                    ),
                   ),
-                ),
-                Expanded(
-                  child: FlatButton(
-                    onPressed: () {
-                      Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => SearchPage()));
-                    },
-                    child: null,
+                  Expanded(
+                    child: FlatButton(
+                      onPressed: () {
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => SearchPage()));
+                      },
+                      child: null,
+                    ),
+                    flex: 10,
                   ),
-                  flex: 10,
-                ),
-              ],
+                ],
+              ),
+            ),
+          ),
+          actions: <Widget>[
+            PopupMenuButton<String>(
+                icon: Icon(Icons.format_list_bulleted),
+                onSelected: (String value) {
+                  setState(() {});
+                },
+                itemBuilder: (BuildContext context) => <PopupMenuItem<String>>[
+                      PopupMenuItem<String>(value: '我的信息', child: Text('我的信息')),
+                      PopupMenuItem<String>(value: '我的消息', child: Text('我的消息')),
+                      PopupMenuItem<String>(value: '我的订单', child: Text('我的订单'))
+                    ])
+          ]),
+      drawer: Drawer(
+          child: ListView(padding: const EdgeInsets.only(), children: <Widget>[
+        UserAccountsDrawerHeader(
+          currentAccountPicture: CircleAvatar(
+              backgroundImage: AssetImage('images/LOGO/4x/logo_xxxhdpi.jpg')),
+          accountName: Text(
+            'UserName',
+          ),
+          accountEmail: Text(
+            'UserEmail@example.com',
+          ),
+        ),
+        ClipRect(
+          child: ListTile(
+            leading: CircleAvatar(child: Icon(Icons.perm_contact_calendar)),
+            title: Text('我的信息'),
+            onTap: () {},
+          ),
+        ),
+        ListTile(
+          leading: CircleAvatar(child: Icon(Icons.add_shopping_cart)),
+          title: Text('我的交易'),
+          subtitle: Text('我买的和我卖的'),
+          onTap: () {},
+        ),
+        ListTile(
+          leading: CircleAvatar(child: Icon(Icons.settings)),
+          title: Text('设置'),
+          onTap: () => {},
+        ),
+        AboutListTile(
+          icon: CircleAvatar(child: Text('Ab')),
+          child: Text('关于'),
+          applicationName: 'Test',
+          applicationVersion: '1.0',
+          applicationLegalese: 'applicationLegalese',
+          aboutBoxChildren: <Widget>[Text('BoxChildren'), Text('box child 2')],
+        ),
+        Container(
+          constraints: BoxConstraints.expand(
+            height: Theme.of(context).textTheme.display1.fontSize * 1.1 + 10,
+          ),
+          margin: EdgeInsets.symmetric(vertical: 10.0, horizontal: 16.0),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(4.0),
+            child: FlatButton(
+              onPressed: () {
+                Future<bool> logout() async {
+                  SharedPreferences prefs =
+                      await SharedPreferences.getInstance();
+                  var isLogin = prefs.setString("isLogin", "0");
+                  prefs.setString("temporaryid", "0");
+                  return isLogin;
+                }
+
+                logout();
+                showDialog<Null>(
+                  context: context,
+                  builder: (BuildContext context) {
+                    return AlertDialog(
+                      title: Text("退出登录成功"),
+                      actions: <Widget>[
+                        FlatButton(
+                          child: Text("确定"),
+                          onPressed: () {
+                            Navigator.of(context).pop();
+                            Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) => LoginPage()));
+                          },
+                        ),
+                      ],
+                    );
+                  },
+                );
+              },
+              color: Colors.red,
+              child: Text(
+                "退出登录",
+                style: TextStyle(color: Colors.white),
+              ),
             ),
           ),
         ),
-        actions: <Widget>[
-          IconButton(
-            icon: Icon(Icons.file_upload),
-            onPressed: () {
-              Navigator.push(context,
-                  MaterialPageRoute(builder: (context) => UploadPage()));
-            },
-          )
-        ],
-      ),
-      drawer: Drawer(
-        child: HomeBuilder.homeDrawer(),
-      ),
+      ])),
       body: bodies[tabIndex],
       bottomNavigationBar: BottomNavigationBar(
         items: [
@@ -116,8 +313,43 @@ class _MainPageState extends State<MainPage> {
         elevation: 7.0,
         highlightElevation: 14.0,
         onPressed: () {
-          Navigator.push(
-              context, MaterialPageRoute(builder: (context) => LoginPage()));
+          setState(() {
+            Future<String> isLoginState = checkLogin();
+            isLoginState.then((String isLoginState) {
+              print(isLoginState);
+              if (isLoginState == "1") {
+                Navigator.push(context,
+                    MaterialPageRoute(builder: (context) => UploadPage()));
+              } else {
+                showDialog<Null>(
+                  context: context,
+                  builder: (BuildContext context) {
+                    return AlertDialog(
+                      title: Text("上传商品需要登录账户，\n是否要现在登录"),
+                      actions: <Widget>[
+                        FlatButton(
+                          child: Text("确定"),
+                          onPressed: () {
+                            Navigator.of(context).pop();
+                            Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) => LoginPage()));
+                          },
+                        ),
+                        FlatButton(
+                          child: Text('取消'),
+                          onPressed: () {
+                            Navigator.of(context).pop();
+                          },
+                        ),
+                      ],
+                    );
+                  },
+                );
+              }
+            });
+          });
         },
       ),
     );
@@ -305,13 +537,12 @@ class HomePage extends StatelessWidget {
                         return Container(
                           width: MediaQuery.of(context).size.width,
                           margin: EdgeInsets.symmetric(horizontal: 5.0),
-                          decoration: BoxDecoration(
-                              borderRadius:
-                                  BorderRadius.all(Radius.circular(5.0)),
-                              color: Colors.blue),
-                          child: Image.asset(
-                            "images/Advertisements/ad$i.jpg",
-                            fit: BoxFit.fill,
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(4.0),
+                            child: Image.asset(
+                              "images/Advertisements/ad$i.jpg",
+                              fit: BoxFit.fill,
+                            ),
                           ),
                         );
                       },
@@ -363,9 +594,9 @@ class HomePage extends StatelessWidget {
                             child: Icon(Icons.compare_arrows),
                           ),
                           InnerButton(
-                            text: Text('集收'),
+                            text: Text('全部'),
                             child: Icon(
-                              Icons.pan_tool,
+                              Icons.subdirectory_arrow_right,
                             ),
                           ),
                         ],
@@ -373,118 +604,12 @@ class HomePage extends StatelessWidget {
                     ],
                   )),
             ),
-//              ListView.builder(itemBuilder: (context, index) {
-//              return   InnerRow(child:   ItemRow(),);
-//            },
-//              itemCount: 20,),
-
             Divider(),
             InnerRow(
-              child: Container(
-                height: 220.0,
-                child: Row(
-                  children: <Widget>[
-                    Expanded(
-                      child: ItemCard(
-                        image: 'images/tempItems/p1.jpg',
-                        title: '出顾家北手把手教你雅思写作',
-                        price: '20',
-                      ),
-                      flex: 1,
-                    ),
-                    Expanded(
-                      child: ItemCard(
-                        image: 'images/tempItems/p2.png',
-                        title: '收一个USB转串口数据线',
-                        price: '面议',
-                      ),
-                      flex: 1,
-                    ),
-                  ],
-                ),
+              child: Column(
+                children: itemRows,
               ),
-            ),
-            InnerRow(
-              child: Container(
-                height: 220.0,
-                child: Row(
-                  children: <Widget>[
-                    Expanded(
-                      child: ItemCard(
-                        image: 'images/tempItems/p3.jpg',
-                        title: '出外星人17r3 配置如图',
-                        price: '面议',
-                      ),
-                      flex: 1,
-                    ),
-                    Expanded(
-                      child: ItemCard(
-                        image: 'images/tempItems/p5.jpg',
-                        title: '收这本书',
-                        price: '40',
-                      ),
-                      flex: 1,
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            InnerRow(
-              child: Container(
-                height: 220.0,
-                child: Row(
-                  children: <Widget>[
-                    Expanded(
-                      child: ItemCard(
-                        image: 'images/tempItems/p6.jpg',
-                        title: '出一瓶这个',
-                        price: '45',
-                      ),
-                      flex: 1,
-                    ),
-                    Expanded(
-                      child: ItemCard(
-                        image: 'images/tempItems/p7.png',
-                        title: '试收一颗这个型号的纽扣电池',
-                        price: '10',
-                      ),
-                      flex: 1,
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            InnerRow(
-              child: Container(
-                height: 220.0,
-                child: Row(
-                  children: <Widget>[
-                    Expanded(
-                      child: ItemCard(
-                        image: 'images/tempItems/p8.jpg',
-                        title: '代购YPL瘦腿裤薄款180秋冬加厚款210',
-                        price: '180',
-                      ),
-                      flex: 1,
-                    ),
-                    Expanded(
-                      child: ItemCard(
-                        image: 'images/LOGO/1.5x/logo_hdpi.png',
-                        title: 'itemNam',
-                        price: '888888',
-                      ),
-                      flex: 1,
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            InnerRow(
-              child: ItemRow(),
-            ),
-            InnerRow(
-              child: ItemRow(),
-            ),
+            )
           ],
         ),
       ),
@@ -494,46 +619,7 @@ class HomePage extends StatelessWidget {
 
 class HomeBuilder {
   //侧边栏
-  static Widget homeDrawer() {
-    return ListView(padding: const EdgeInsets.only(), children: <Widget>[
-      UserAccountsDrawerHeader(
-        currentAccountPicture: CircleAvatar(
-            backgroundImage: AssetImage('images/LOGO/4x/logo_xxxhdpi.jpg')),
-        accountName: Text(
-          'UserName',
-        ),
-        accountEmail: Text(
-          'UserEmail@example.com',
-        ),
-      ),
-      ClipRect(
-        child: ListTile(
-          leading: CircleAvatar(child: Icon(Icons.perm_contact_calendar)),
-          title: Text('我的信息'),
-          onTap: () {},
-        ),
-      ),
-      ListTile(
-        leading: CircleAvatar(child: Icon(Icons.add_shopping_cart)),
-        title: Text('我的交易'),
-        subtitle: Text('我买的和我卖的'),
-        onTap: () {},
-      ),
-      ListTile(
-        leading: CircleAvatar(child: Icon(Icons.settings)),
-        title: Text('设置'),
-        onTap: () => {},
-      ),
-      AboutListTile(
-        icon: CircleAvatar(child: Text('Ab')),
-        child: Text('关于'),
-        applicationName: 'Test',
-        applicationVersion: '1.0',
-        applicationLegalese: 'applicationLegalese',
-        aboutBoxChildren: <Widget>[Text('BoxChildren'), Text('box child 2')],
-      ),
-    ]);
-  }
+
 }
 
 //内部空间中行设定
@@ -543,7 +629,7 @@ class InnerRow extends StatefulWidget {
     this.child,
   }) : super(key: key);
 
-  final Widget child; //分类ICON
+  final Widget child;
 
   @override
   _InnerRowState createState() => _InnerRowState();
@@ -612,14 +698,29 @@ class ItemCard extends StatefulWidget {
   const ItemCard({
     Key key,
     this.child,
-    this.image,
     this.title,
+    this.imagePath,
     this.price,
+    this.address,
+    this.owner,
+    this.status,
+    this.putAwayTime,
+    this.payment,
+    this.description,
+    this.availableTime,
   }) : super(key: key);
+
   final Widget child;
-  final String image;
-  final String title;
+  final String imagePath;
+  final String status;
+  final String owner;
+  final String putAwayTime;
+  final String availableTime;
+  final String address;
   final String price;
+  final String payment;
+  final String title;
+  final String description;
 
   @override
   _ItemCardState createState() => _ItemCardState();
@@ -639,7 +740,7 @@ class _ItemCardState extends State<ItemCard> {
               child: Container(
                 color: Colors.black12,
                 child: Image.asset(
-                  widget.image,
+                  'images/LOGO/4x/logo_xxxhdpi.jpg',
                   fit: BoxFit.fill,
                 ),
               ),
@@ -652,7 +753,7 @@ class _ItemCardState extends State<ItemCard> {
                   widget.title,
                   style: TextStyle(
                       fontSize: 18.0,
-                      fontWeight: FontWeight.w300,
+                      fontWeight: FontWeight.w600,
                       color: Colors.black),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -677,8 +778,22 @@ class _ItemCardState extends State<ItemCard> {
           ],
         ),
         onPressed: () {
-          Navigator.push(
-              context, MaterialPageRoute(builder: (context) => SelectPage()));
+          Navigator.of(context).push(MaterialPageRoute(
+            builder: (context) {
+              //指定跳转的页面
+              return ProductionPage(
+                title: widget.title,
+                description: widget.description,
+                owner: widget.owner,
+//                  status:widget.status,
+                putAwayTime: widget.putAwayTime,
+//                  availableTime: widget.availableTime,
+                price: widget.price,
+                address: widget.address,
+                payment: widget.payment,
+              );
+            },
+          ));
         },
       ),
     );
@@ -687,11 +802,9 @@ class _ItemCardState extends State<ItemCard> {
 
 //商品行
 class ItemRow extends StatefulWidget {
-  const ItemRow({
-    Key key,
-    this.child,
-  }) : super(key: key);
-  final Widget child;
+  const ItemRow({Key key, this.lchild, this.rchild}) : super(key: key);
+  final Widget lchild;
+  final Widget rchild;
 
   @override
   _ItemRowState createState() => _ItemRowState();
@@ -706,19 +819,11 @@ class _ItemRowState extends State<ItemRow> {
       child: Row(
         children: <Widget>[
           Expanded(
-            child: ItemCard(
-              image: 'images/LOGO/1.5x/logo_hdpi.png',
-              title: 'itemNam',
-              price: '888888',
-            ),
+            child: widget.lchild,
             flex: 1,
           ),
           Expanded(
-            child: ItemCard(
-              image: 'images/LOGO/1.5x/logo_hdpi.png',
-              title: 'itemNam',
-              price: '888888',
-            ),
+            child: widget.rchild,
             flex: 1,
           ),
         ],

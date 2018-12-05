@@ -6,7 +6,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_cupertino_date_picker/flutter_cupertino_date_picker.dart';
 
 import 'package:image_picker/image_picker.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sustc_market/main.dart';
+
+var selectedTypeList = [];
+var selectedPaymentList = [];
 
 class UploadPage extends StatefulWidget {
   @override
@@ -16,14 +20,14 @@ class UploadPage extends StatefulWidget {
 }
 
 class _UploadPageState extends State<UploadPage> {
-  GlobalKey<FormState> _uploadFormKey = new GlobalKey<FormState>();
-
   TextEditingController titleController = TextEditingController();
   TextEditingController descriptionController = TextEditingController();
   TextEditingController priceController = TextEditingController();
 
   GlobalKey<FormState> _priceKey = new GlobalKey<FormState>();
+  GlobalKey<FormState> _uploadFormKey = new GlobalKey<FormState>();
 
+  var temporaryid = "";
   var _title = "";
   var _description = "";
   var _price = "";
@@ -37,12 +41,29 @@ class _UploadPageState extends State<UploadPage> {
   File _image2;
   File _image3;
 
+  @override
+  void initState() {
+    // TODO: implement initState
+    selectedTypeList = [];
+    selectedPaymentList = [];
+    super.initState();
+  }
+
+  Future<String> getTempID() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    temporaryid = prefs.getString("temporaryid");
+
+    return temporaryid;
+  }
+
   void _formSubmitted() async {
     var _form = _uploadFormKey.currentState;
 
     if (_form.validate()) {
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      temporaryid = prefs.getString("temporaryid");
       FormData uploadFormData = new FormData.from({
-        "temporaryid": "1",
+        "temporaryid": temporaryid,
         "name": titleController.text,
         "description": descriptionController.text,
         "status": "SELLING",
@@ -60,7 +81,8 @@ class _UploadPageState extends State<UploadPage> {
         "availabletime": _availableTime,
         "price": _price,
         "address": _area,
-        "type": _type,
+        "type": "服饰",
+        "paytype": _payment,
       });
 
       _form.save();
@@ -69,7 +91,7 @@ class _UploadPageState extends State<UploadPage> {
       Response response = await dio.get(
           "http://120.79.232.137:8080/helloSSM/dommodity/createDommodity",
           data: uploadFormData);
-      Map data = json.decode(response.data);
+      Map data = response.data;
       if (response.statusCode != 200) {
         return showDialog<Null>(
           context: context,
@@ -99,23 +121,6 @@ class _UploadPageState extends State<UploadPage> {
                     child: Text('确定'),
                     onPressed: () {
                       Navigator.of(context).pop();
-                      Navigator.of(context).pop();
-                    },
-                  ),
-                ],
-              );
-            },
-          );
-        } else {
-          showDialog<Null>(
-            context: context,
-            builder: (BuildContext context) {
-              return AlertDialog(
-                title: Text('账号或密码错误'),
-                actions: <Widget>[
-                  FlatButton(
-                    child: Text('确定'),
-                    onPressed: () {
                       Navigator.of(context).pop();
                     },
                   ),
@@ -173,8 +178,8 @@ class _UploadPageState extends State<UploadPage> {
                     ),
                     buildPriceRow(context),
                     buildTypeRow(context),
-                    buildAreaRow(context),
                     buildPaymentRow(context),
+                    buildAreaRow(context),
                     buildPutAwayRow(context),
                     buildUploadButton(context),
                   ],
@@ -312,7 +317,7 @@ class _UploadPageState extends State<UploadPage> {
                 ),
                 RichText(
                   text: TextSpan(
-                      text: '￥',
+                      text: _price == "" ? "" : "￥",
                       style: TextStyle(fontSize: 17.0, color: Colors.black),
                       children: <TextSpan>[
                         TextSpan(
@@ -337,7 +342,7 @@ class _UploadPageState extends State<UploadPage> {
                         key: _priceKey,
                         controller: priceController,
                         decoration:
-                            InputDecoration(hintText: "仅支持0~99999999数字"),
+                            InputDecoration(hintText: "仅支持0~99999999数字和‘面议’"),
                       ),
                       Padding(
                         padding: const EdgeInsets.all(8.0),
@@ -345,7 +350,7 @@ class _UploadPageState extends State<UploadPage> {
                           child: Text('确定'),
                           onPressed: () {
                             if (RegExp(r'[0-9]')
-                                .hasMatch(priceController.text)) {
+                                .hasMatch(priceController.text)||priceController.text.trim()=="面议") {
                               _price = priceController.text;
                               Navigator.of(context).pop();
                             } else {
@@ -382,6 +387,7 @@ class _UploadPageState extends State<UploadPage> {
                 Text(
                   _type,
                   style: TextStyle(fontSize: 17.0, color: Colors.black),
+                  maxLines: 1,
                 ),
                 Icon(Icons.keyboard_arrow_right)
               ],
@@ -394,51 +400,56 @@ class _UploadPageState extends State<UploadPage> {
                     title: Text('请选择种类'),
                     contentPadding: EdgeInsets.symmetric(horizontal: 20.0),
                     children: <Widget>[
-                      FlatButton(
-                        child: Text("书本"),
-                        onPressed: () {
-                          setState(() {
-                            _type = "书本";
-                            Navigator.of(context).pop();
-                          });
-                        },
+                      SelectTypeRow(
+                        type: "书本",
+                      ),
+                      SelectTypeRow(
+                        type: "服饰",
+                      ),
+                      SelectTypeRow(
+                        type: "交通",
+                      ),
+                      SelectTypeRow(
+                        type: "化妆",
+                      ),
+                      SelectTypeRow(
+                        type: "服务",
+                      ),
+                      SelectTypeRow(
+                        type: "娱乐",
+                      ),
+                      SelectTypeRow(
+                        type: "电子",
+                      ),
+                      SelectTypeRow(
+                        type: "食品",
                       ),
                       FlatButton(
-                        child: Text("服饰"),
-                        onPressed: () {
-                          setState(() {
-                            _type = "服饰";
-                            Navigator.of(context).pop();
-                          });
-                        },
-                      ),
-                      FlatButton(
-                        child: Text("食品"),
-                        onPressed: () {
-                          setState(() {
-                            _type = "食品";
-                            Navigator.of(context).pop();
-                          });
-                        },
-                      ),
-                      FlatButton(
-                        child: Text("书本"),
-                        onPressed: () {
-                          setState(() {
-                            _type = "书本";
-                            Navigator.of(context).pop();
-                          });
-                        },
-                      ),
-                      FlatButton(
-                        child: Text("电子产品"),
-                        onPressed: () {
-                          setState(() {
-                            _type = "电子产品";
-                            Navigator.of(context).pop();
-                          });
-                        },
-                      ),
+                          child: Text(
+                            "确定",
+                            style: TextStyle(color: Colors.white),
+                          ),
+                          color: Colors.green,
+                          onPressed: () {
+                            setState(() {
+                              if (selectedTypeList.length != 0) {
+                                _type = "";
+
+                                for (int i = 0;
+                                    i < selectedTypeList.length - 1;
+                                    i++) {
+                                  _type = _type + selectedTypeList[i] + ",";
+                                }
+                                _type = _type +
+                                    selectedTypeList[
+                                        selectedTypeList.length - 1];
+                                print(_type);
+                                selectedTypeList = [];
+                              }
+
+                              Navigator.of(context).pop();
+                            });
+                          }),
                     ],
                   );
                 },
@@ -461,7 +472,7 @@ class _UploadPageState extends State<UploadPage> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: <Widget>[
                 Text(
-                  "位置",
+                  "商品所在位置",
                   style: TextStyle(color: Colors.black, fontSize: 17.0),
                 ),
                 Text(
@@ -479,244 +490,100 @@ class _UploadPageState extends State<UploadPage> {
                     title: Text('请选择所在位置'),
                     contentPadding: EdgeInsets.symmetric(horizontal: 20.0),
                     children: <Widget>[
-                      PopupMenuButton<String>(
-                          child: Padding(
-                            padding: EdgeInsets.symmetric(vertical: 10.0),
-                            child: Align(
-                              alignment: Alignment.center,
-                              child: Text(
-                                "湖畔宿舍区",
-                                style: TextStyle(
-                                    color: Colors.black, fontSize: 20.0),
-                              ),
-                            ),
-                          ),
-                          onSelected: (String value) {
-                            setState(() {
-                              _area = value;
-                            });
-                          },
-                          itemBuilder: (BuildContext context) =>
-                              <PopupMenuItem<String>>[
-                                PopupMenuItem<String>(
-                                    value: '湖畔一栋', child: Text('湖畔一栋')),
-                                PopupMenuItem<String>(
-                                    value: '湖畔二栋', child: Text('湖畔二栋')),
-                                PopupMenuItem<String>(
-                                    value: '湖畔三栋', child: Text('湖畔三栋')),
-                                PopupMenuItem<String>(
-                                    value: '湖畔四栋', child: Text('湖畔四栋')),
-                                PopupMenuItem<String>(
-                                    value: '湖畔五栋', child: Text('湖畔五栋')),
-                                PopupMenuItem<String>(
-                                    value: '湖畔六栋', child: Text('湖畔六栋')),
-                              ]),
-                      PopupMenuButton<String>(
-                          child: Padding(
-                            padding: EdgeInsets.symmetric(vertical: 10.0),
-                            child: Align(
-                              alignment: Alignment.center,
-                              child: Text(
-                                "荔园宿舍区",
-                                style: TextStyle(
-                                    color: Colors.black, fontSize: 20.0),
-                              ),
-                            ),
-                          ),
-                          onSelected: (String value) {
-                            setState(() {
-                              _area = value;
-                            });
-                          },
-                          itemBuilder: (BuildContext context) =>
-                              <PopupMenuItem<String>>[
-                                PopupMenuItem<String>(
-                                    value: '荔园一栋', child: Text('荔园一栋')),
-                                PopupMenuItem<String>(
-                                    value: '荔园二栋', child: Text('荔园二栋')),
-                                PopupMenuItem<String>(
-                                    value: '荔园三栋', child: Text('荔园三栋')),
-                                PopupMenuItem<String>(
-                                    value: '荔园四栋', child: Text('荔园四栋')),
-                                PopupMenuItem<String>(
-                                    value: '荔园五栋', child: Text('荔园五栋')),
-                                PopupMenuItem<String>(
-                                    value: '荔园六栋', child: Text('荔园六栋')),
-                                PopupMenuItem<String>(
-                                    value: '荔园七栋', child: Text('荔园七栋')),
-                                PopupMenuItem<String>(
-                                    value: '荔园八栋', child: Text('荔园八栋')),
-                              ]),
-                      PopupMenuButton<String>(
-                          child: Padding(
-                            padding: EdgeInsets.symmetric(vertical: 10.0),
-                            child: Align(
-                              alignment: Alignment.center,
-                              child: Text(
-                                "欣园",
-                                style: TextStyle(
-                                    color: Colors.black, fontSize: 20.0),
-                              ),
-                            ),
-                          ),
-                          onSelected: (String value) {
-                            setState(() {
-                              _area = value;
-                            });
-                          },
-                          itemBuilder: (BuildContext context) =>
-                              <PopupMenuItem<String>>[
-                                PopupMenuItem<String>(
-                                    value: '欣园一栋', child: Text('欣园一栋')),
-                                PopupMenuItem<String>(
-                                    value: '欣园二栋', child: Text('欣园二栋')),
-                                PopupMenuItem<String>(
-                                    value: '欣园三栋', child: Text('欣园三栋')),
-                                PopupMenuItem<String>(
-                                    value: '欣园四栋', child: Text('欣园四栋')),
-                                PopupMenuItem<String>(
-                                    value: '欣园五栋', child: Text('欣园五栋')),
-                                PopupMenuItem<String>(
-                                    value: '欣园六栋', child: Text('欣园六栋')),
-                                PopupMenuItem<String>(
-                                    value: '欣园七栋', child: Text('欣园七栋')),
-                                PopupMenuItem<String>(
-                                    value: '欣园八栋', child: Text('欣园八栋')),
-                              ]),
-                      PopupMenuButton<String>(
-                          child: Padding(
-                            padding: EdgeInsets.symmetric(vertical: 10.0),
-                            child: Align(
-                              alignment: Alignment.center,
-                              child: Text(
-                                "慧园",
-                                style: TextStyle(
-                                    color: Colors.black, fontSize: 20.0),
-                              ),
-                            ),
-                          ),
-                          onSelected: (String value) {
-                            setState(() {
-                              _area = value;
-                            });
-                          },
-                          itemBuilder: (BuildContext context) =>
-                              <PopupMenuItem<String>>[
-                                PopupMenuItem<String>(
-                                    value: '慧园一栋', child: Text('慧园一栋')),
-                                PopupMenuItem<String>(
-                                    value: '慧园二栋', child: Text('慧园二栋')),
-                                PopupMenuItem<String>(
-                                    value: '慧园三栋', child: Text('慧园三栋')),
-                                PopupMenuItem<String>(
-                                    value: '慧园四栋', child: Text('慧园四栋')),
-                                PopupMenuItem<String>(
-                                    value: '慧园五栋', child: Text('慧园五栋')),
-                                PopupMenuItem<String>(
-                                    value: '慧园六栋', child: Text('慧园六栋')),
-                                PopupMenuItem<String>(
-                                    value: '慧园七栋', child: Text('慧园七栋')),
-                                PopupMenuItem<String>(
-                                    value: '慧园八栋', child: Text('慧园八栋')),
-                              ]),
-                      PopupMenuButton<String>(
-                          child: Padding(
-                            padding: EdgeInsets.symmetric(vertical: 10.0),
-                            child: Align(
-                              alignment: Alignment.center,
-                              child: Text(
-                                "创园",
-                                style: TextStyle(
-                                    color: Colors.black, fontSize: 20.0),
-                              ),
-                            ),
-                          ),
-                          onSelected: (String value) {
-                            setState(() {
-                              _area = value;
-                            });
-                          },
-                          itemBuilder: (BuildContext context) =>
-                              <PopupMenuItem<String>>[
-                                PopupMenuItem<String>(
-                                    value: '创园一栋', child: Text('创园一栋')),
-                                PopupMenuItem<String>(
-                                    value: '创园二栋', child: Text('创园二栋')),
-                                PopupMenuItem<String>(
-                                    value: '创园三栋', child: Text('创园三栋')),
-                                PopupMenuItem<String>(
-                                    value: '创园四栋', child: Text('创园四栋')),
-                                PopupMenuItem<String>(
-                                    value: '创园五栋', child: Text('创园五栋')),
-                                PopupMenuItem<String>(
-                                    value: '创园六栋', child: Text('创园六栋')),
-                                PopupMenuItem<String>(
-                                    value: '创园七栋', child: Text('创园七栋')),
-                                PopupMenuItem<String>(
-                                    value: '创园八栋', child: Text('创园八栋')),
-                              ]),
-                      PopupMenuButton<String>(
-                          child: Padding(
-                            padding: EdgeInsets.symmetric(vertical: 10.0),
-                            child: Align(
-                              alignment: Alignment.center,
-                              child: Text(
-                                "智园",
-                                style: TextStyle(
-                                    color: Colors.black, fontSize: 20.0),
-                              ),
-                            ),
-                          ),
-                          onSelected: (String value) {
-                            setState(() {
-                              _area = value;
-                            });
-                          },
-                          itemBuilder: (BuildContext context) =>
-                              <PopupMenuItem<String>>[
-                                PopupMenuItem<String>(
-                                    value: '智园一栋', child: Text('智园一栋')),
-                                PopupMenuItem<String>(
-                                    value: '智园二栋', child: Text('智园二栋')),
-                                PopupMenuItem<String>(
-                                    value: '智园三栋', child: Text('智园三栋')),
-                                PopupMenuItem<String>(
-                                    value: '智园四栋', child: Text('智园四栋')),
-                                PopupMenuItem<String>(
-                                    value: '智园五栋', child: Text('智园五栋')),
-                                PopupMenuItem<String>(
-                                    value: '智园六栋', child: Text('智园六栋')),
-                                PopupMenuItem<String>(
-                                    value: '智园七栋', child: Text('智园七栋')),
-                                PopupMenuItem<String>(
-                                    value: '智园八栋', child: Text('智园八栋')),
-                              ]),
-                      PopupMenuButton<String>(
-                          child: Padding(
-                            padding: EdgeInsets.symmetric(vertical: 10.0),
-                            child: Align(
-                              alignment: Alignment.center,
-                              child: Text(
-                                "教学区",
-                                style: TextStyle(
-                                    color: Colors.black, fontSize: 20.0),
-                              ),
-                            ),
-                          ),
-                          onSelected: (String value) {
-                            setState(() {
-                              _area = value;
-                            });
-                          },
-                          itemBuilder: (BuildContext context) =>
-                              <PopupMenuItem<String>>[
-                                PopupMenuItem<String>(
-                                    value: '图书馆', child: Text('图书馆')),
-                                PopupMenuItem<String>(
-                                    value: '第一教学楼', child: Text('第一教学楼')),
-                                PopupMenuItem<String>(
-                                    value: '第二教学楼', child: Text('第二教学楼'))
-                              ]),
+                      generateAddressRow(context, "湖畔", <PopupMenuItem<String>>[
+                        PopupMenuItem<String>(
+                            value: '湖畔一栋', child: Text('湖畔一栋')),
+                        PopupMenuItem<String>(
+                            value: '湖畔二栋', child: Text('湖畔二栋')),
+                        PopupMenuItem<String>(
+                            value: '湖畔三栋', child: Text('湖畔三栋')),
+                        PopupMenuItem<String>(
+                            value: '湖畔四栋', child: Text('湖畔四栋')),
+                        PopupMenuItem<String>(
+                            value: '湖畔五栋', child: Text('湖畔五栋')),
+                        PopupMenuItem<String>(
+                            value: '湖畔六栋', child: Text('湖畔六栋')),
+                      ]),
+                      generateAddressRow(context, "荔园", <PopupMenuItem<String>>[
+                        PopupMenuItem<String>(
+                            value: '荔园一栋', child: Text('荔园一栋')),
+                        PopupMenuItem<String>(
+                            value: '荔园二栋', child: Text('荔园二栋')),
+                        PopupMenuItem<String>(
+                            value: '荔园三栋', child: Text('荔园三栋')),
+                        PopupMenuItem<String>(
+                            value: '荔园四栋', child: Text('荔园四栋')),
+                        PopupMenuItem<String>(
+                            value: '荔园五栋', child: Text('荔园五栋')),
+                        PopupMenuItem<String>(
+                            value: '荔园六栋', child: Text('荔园六栋')),
+                        PopupMenuItem<String>(
+                            value: '荔园七栋', child: Text('荔园七栋')),
+                        PopupMenuItem<String>(
+                            value: '荔园八栋', child: Text('荔园八栋')),
+                      ]),
+                      generateAddressRow(context, "欣园", <PopupMenuItem<String>>[
+                        PopupMenuItem<String>(
+                            value: '欣园一栋', child: Text('欣园一栋')),
+                        PopupMenuItem<String>(
+                            value: '欣园二栋', child: Text('欣园二栋')),
+                        PopupMenuItem<String>(
+                            value: '欣园三栋', child: Text('欣园三栋')),
+                        PopupMenuItem<String>(
+                            value: '欣园四栋', child: Text('欣园四栋')),
+                        PopupMenuItem<String>(
+                            value: '欣园五栋', child: Text('欣园五栋')),
+                        PopupMenuItem<String>(
+                            value: '欣园六栋', child: Text('欣园六栋')),
+                        PopupMenuItem<String>(
+                            value: '欣园七栋', child: Text('欣园七栋')),
+                        PopupMenuItem<String>(
+                            value: '欣园八栋', child: Text('欣园八栋')),
+                      ]),
+                      generateAddressRow(context, "慧园", <PopupMenuItem<String>>[
+                        PopupMenuItem<String>(
+                            value: '慧园一栋', child: Text('慧园一栋')),
+                        PopupMenuItem<String>(
+                            value: '慧园二栋', child: Text('慧园二栋')),
+                        PopupMenuItem<String>(
+                            value: '慧园三栋', child: Text('慧园三栋')),
+                        PopupMenuItem<String>(
+                            value: '慧园四栋', child: Text('慧园四栋')),
+                        PopupMenuItem<String>(
+                            value: '慧园五栋', child: Text('慧园五栋')),
+                        PopupMenuItem<String>(
+                            value: '慧园六栋', child: Text('慧园六栋')),
+                        PopupMenuItem<String>(
+                            value: '慧园七栋', child: Text('慧园七栋')),
+                        PopupMenuItem<String>(
+                            value: '慧园八栋', child: Text('慧园八栋')),
+                      ]),
+                      generateAddressRow(context, "创园", <PopupMenuItem<String>>[
+                        PopupMenuItem<String>(
+                            value: '创园一栋', child: Text('创园一栋')),
+                        PopupMenuItem<String>(
+                            value: '创园二栋', child: Text('创园二栋')),
+                        PopupMenuItem<String>(
+                            value: '创园三栋', child: Text('创园三栋')),
+                        PopupMenuItem<String>(
+                            value: '创园四栋', child: Text('创园四栋')),
+                        PopupMenuItem<String>(
+                            value: '创园五栋', child: Text('创园五栋')),
+                        PopupMenuItem<String>(
+                            value: '创园六栋', child: Text('创园六栋')),
+                        PopupMenuItem<String>(
+                            value: '创园七栋', child: Text('创园七栋')),
+                        PopupMenuItem<String>(
+                            value: '创园八栋', child: Text('创园八栋')),
+                      ]),
+                      generateAddressRow(
+                          context, "教学区", <PopupMenuItem<String>>[
+                        PopupMenuItem<String>(value: '图书馆', child: Text('图书馆')),
+                        PopupMenuItem<String>(
+                            value: '第一教学楼', child: Text('第一教学楼')),
+                        PopupMenuItem<String>(
+                            value: '第二教学楼', child: Text('第二教学楼'))
+                      ]),
                     ],
                   );
                 },
@@ -726,6 +593,28 @@ class _UploadPageState extends State<UploadPage> {
         ),
         Divider(),
       ],
+    );
+  }
+
+  PopupMenuButton generateAddressRow(BuildContext context, String address,
+      List<PopupMenuItem<String>> addresses) {
+    return PopupMenuButton<String>(
+      child: Padding(
+        padding: EdgeInsets.symmetric(vertical: 10.0),
+        child: Align(
+          alignment: Alignment.center,
+          child: Text(
+            address,
+          ),
+        ),
+      ),
+      onSelected: (String value) {
+        setState(() {
+          _area = value;
+          Navigator.of(context).pop();
+        });
+      },
+      itemBuilder: (BuildContext context) => addresses,
     );
   }
 
@@ -757,42 +646,41 @@ class _UploadPageState extends State<UploadPage> {
                     title: Text('请选择种类'),
                     contentPadding: EdgeInsets.symmetric(horizontal: 20.0),
                     children: <Widget>[
-                      FlatButton(
-                        child: Text("微信"),
-                        onPressed: () {
-                          setState(() {
-                            _payment = "微信";
-                            Navigator.of(context).pop();
-                          });
-                        },
+                      SelectPaymentRow(
+                        payment: "支付宝",
+                      ),
+                      SelectPaymentRow(
+                        payment: "微信",
+                      ),
+                      SelectPaymentRow(
+                        payment: "现金",
+                      ),
+                      SelectPaymentRow(
+                        payment: "其他",
                       ),
                       FlatButton(
-                        child: Text("支付宝"),
-                        onPressed: () {
-                          setState(() {
-                            _payment = "支付宝";
-                            Navigator.of(context).pop();
-                          });
-                        },
-                      ),
-                      FlatButton(
-                        child: Text("现金"),
-                        onPressed: () {
-                          setState(() {
-                            _payment = "现金";
-                            Navigator.of(context).pop();
-                          });
-                        },
-                      ),
-                      FlatButton(
-                        child: Text("面议"),
-                        onPressed: () {
-                          setState(() {
-                            _payment = "面议";
-                            Navigator.of(context).pop();
-                          });
-                        },
-                      ),
+                          child: Text("确定`"),
+                          onPressed: () {
+                            setState(() {
+                              if (selectedPaymentList.length != 0) {
+                                _payment = "";
+
+                                for (int i = 0;
+                                    i < selectedPaymentList.length - 1;
+                                    i++) {
+                                  _payment =
+                                      _payment + selectedPaymentList[i] + ",";
+                                }
+                                _payment = _payment +
+                                    selectedPaymentList[
+                                        selectedPaymentList.length - 1];
+                                print(_payment);
+                                selectedPaymentList = [];
+                              }
+
+                              Navigator.of(context).pop();
+                            });
+                          }),
                     ],
                   );
                 },
@@ -842,13 +730,14 @@ class _UploadPageState extends State<UploadPage> {
                         "/" +
                         month.toString() +
                         "/" +
-                        date.toString() +"-"+
+                        date.toString() +
+                        "-" +
                         DateTime.now().hour.toString() +
                         ":" +
                         DateTime.now().minute.toString() +
                         ":" +
-                        DateTime.now().second.toString() +
-                        ":";
+                        DateTime.now().second.toString();
+                    print(_availableTime);
                   });
                 },
               );
@@ -919,6 +808,96 @@ class _InnerRowState extends State<InnerRow> {
           ),
         ],
       ),
+    );
+  }
+}
+
+class SelectTypeRow extends StatefulWidget {
+  const SelectTypeRow({
+    Key key,
+    this.child,
+    this.type,
+  }) : super(key: key);
+
+  final Widget child;
+  final String type;
+
+  @override
+  _SelectTypeRowState createState() => _SelectTypeRowState();
+}
+
+class _SelectTypeRowState extends State<SelectTypeRow> {
+  var _isSelected = false;
+
+  @override
+  Widget build(BuildContext context) {
+    // TODO: implement build
+    return FlatButton(
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: <Widget>[
+          Text(
+            widget.type,
+            style: TextStyle(color: _isSelected ? Colors.blue : Colors.black87),
+          ),
+          Icon(_isSelected ? Icons.check_box : Icons.check_box_outline_blank,
+              color: _isSelected ? Colors.blue : Colors.black87)
+        ],
+      ),
+      onPressed: () {
+        setState(() {
+          _isSelected = !_isSelected;
+          if (_isSelected)
+            selectedTypeList.add(widget.type);
+          else
+            selectedTypeList.remove(widget.type);
+        });
+      },
+    );
+  }
+}
+
+class SelectPaymentRow extends StatefulWidget {
+  const SelectPaymentRow({
+    Key key,
+    this.child,
+    this.payment,
+  }) : super(key: key);
+
+  final Widget child;
+  final String payment;
+
+  @override
+  _SelectPaymentRowState createState() => _SelectPaymentRowState();
+}
+
+class _SelectPaymentRowState extends State<SelectPaymentRow> {
+  var _isSelected = false;
+
+  @override
+  Widget build(BuildContext context) {
+    // TODO: implement build
+    return FlatButton(
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: <Widget>[
+          Text(
+            widget.payment,
+            style: TextStyle(color: _isSelected ? Colors.blue : Colors.black87),
+          ),
+          Icon(_isSelected ? Icons.check_box : Icons.check_box_outline_blank,
+              color: _isSelected ? Colors.blue : Colors.black87)
+        ],
+      ),
+      onPressed: () {
+        setState(() {
+          _isSelected = !_isSelected;
+          if (_isSelected)
+            selectedPaymentList.add(widget.payment);
+          else
+            selectedPaymentList.remove(widget.payment);
+        });
+      },
     );
   }
 }

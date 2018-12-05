@@ -5,6 +5,7 @@ import 'package:sustc_market/main.dart';
 import 'package:sustc_market/pages/Register.dart';
 import 'package:dio/dio.dart';
 import 'package:sqflite/sqflite.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class LoginPage extends StatefulWidget {
   @override
@@ -25,11 +26,26 @@ class _LoginPageState extends State<LoginPage> {
   GlobalKey<FormState> _loginFormKey = new GlobalKey<FormState>();
   GlobalKey<FormState> _loginViewKey = new GlobalKey<FormState>();
 
-
   bool _isEmail = false;
 
   TextEditingController nameController = TextEditingController();
   TextEditingController passwordController = TextEditingController();
+
+  saveLogInfo(tempID) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    prefs.setString("isLogin", "1");
+    prefs.setString("temporaryid", tempID.toString());
+//    prefs.setString("username", )
+  }
+
+  Future<String> get() async {
+    var userName;
+
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    userName = prefs.getString("temporaryid");
+
+    return userName;
+  }
 
   void _formSubmitted() async {
     var _form = _loginFormKey.currentState;
@@ -46,7 +62,8 @@ class _LoginPageState extends State<LoginPage> {
       Response response = await dio.get(
           "http://120.79.232.137:8080/helloSSM/user/login",
           data: loginFormData);
-      Map data = json.decode(response.data);
+
+      Map<String, dynamic> data = response.data;
       if (response.statusCode != 200) {
         return showDialog<Null>(
           context: context,
@@ -66,6 +83,8 @@ class _LoginPageState extends State<LoginPage> {
         );
       } else {
         if (data["returncode"] == "200") {
+          saveLogInfo(data["temporaryid"]);
+
           Navigator.of(context).push(MaterialPageRoute(
             builder: (context) {
               //指定跳转的页面

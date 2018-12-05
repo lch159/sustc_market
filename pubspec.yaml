@@ -33,6 +33,7 @@ dependencies:
   flutter_cupertino_date_picker: "^0.1.0"
   json_serializable: ^0.5.4
   flutter_countdown: ^0.1.4
+  flutter_redux: ^0.5.2
 
 
 dev_dependencies:
@@ -58,6 +59,7 @@ flutter:
 
   assets:
     - images/LOGO/1.5x/logo_hdpi.png
+    - images/LOGO/1.5x/logo_hdpi.jpg
     - images/LOGO/4x/logo_xxxhdpi.jpg
     - images/Advertisements/ad1.jpg
     - images/Advertisements/ad2.jpg

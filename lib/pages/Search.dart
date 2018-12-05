@@ -7,10 +7,20 @@ class SearchPage extends StatefulWidget {
   }
 }
 
+Set<String> _historySet = new Set();
+List<HistoryRow> _historyList = new List<HistoryRow>();
+
 class _SearchPageState extends State<SearchPage> {
-  Set<String> _historySet = new Set();
-  List<HistoryRow> _historyList = new List<HistoryRow>();
   TextEditingController searchController = new TextEditingController();
+  bool _hasdeleteIcon = false;
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    _historySet = new Set();
+    _historyList = new List<HistoryRow>();
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -28,19 +38,34 @@ class _SearchPageState extends State<SearchPage> {
           child: TextField(
             controller: searchController,
             decoration: InputDecoration(
-              filled: true,
-              fillColor: Colors.white,
-              contentPadding: EdgeInsets.all(10.0),
-              border: OutlineInputBorder(
-                  borderRadius: BorderRadius.all(Radius.circular(90.0))),
-              suffixIcon: IconButton(
-                icon: Icon(Icons.search),
-                color: Colors.grey,
-                onPressed: () {
-                  searchController.clear();
-                },
-              ),
-            ),
+                filled: true,
+                fillColor: Colors.white,
+                contentPadding: EdgeInsets.all(10.0),
+                border: OutlineInputBorder(
+                    borderRadius: BorderRadius.all(Radius.circular(90.0))),
+                suffixIcon: _hasdeleteIcon
+                    ? new Container(
+                        width: 20.0,
+                        height: 20.0,
+                        child: new IconButton(
+                          alignment: Alignment.center,
+                          padding: const EdgeInsets.all(0.0),
+                          iconSize: 18.0,
+                          icon: Icon(Icons.cancel),
+                          color: Colors.grey,
+                          onPressed: () {
+                            setState(() {
+                              searchController.text = "";
+                              _hasdeleteIcon =
+                                  (searchController.text.isNotEmpty);
+                            });
+                          },
+                        ),
+                      )
+                    : new Icon(
+                        Icons.search,
+                        color: Colors.grey,
+                      )),
             autofocus: true,
             onEditingComplete: () {
               setState(() {
@@ -52,6 +77,11 @@ class _SearchPageState extends State<SearchPage> {
                         text: searchController.text,
                       ));
                 }
+              });
+            },
+            onChanged: (str) {
+              setState(() {
+                _hasdeleteIcon = (searchController.text.isNotEmpty);
               });
             },
           ),
@@ -240,7 +270,10 @@ class _HistoryRowState extends State<HistoryRow> {
                   iconSize: 15.0,
                   color: Colors.black45,
                   icon: Icon(Icons.clear),
-                  onPressed: () {},
+                  onPressed: () {
+//                    _historySet.remove(widget.text);
+//                    _historyList.remove(_historyList.indexOf())
+                  },
                 )
               ],
             ),
