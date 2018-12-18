@@ -166,24 +166,33 @@ class _UploadPageState extends State<UploadPage> {
           children: <Widget>[
             Form(
               key: _uploadFormKey,
-              child: InnerRow(
-                child: Column(
-                  children: <Widget>[
-                    buildTitleTextField(context),
-                    buildDescriptionTextField(context),
-                    buildImagesRow(context),
-                    Container(
-                      height: 10.0,
-                      color: Colors.black12,
+              child: Column(
+                children: <Widget>[
+                  Card(
+                    child: Column(
+                      children: <Widget>[
+                        buildTitleTextField(context),
+                        buildDescriptionTextField(context),
+                        buildImagesRow(context),
+                      ],
                     ),
-                    buildPriceRow(context),
-                    buildTypeRow(context),
-                    buildPaymentRow(context),
-                    buildAreaRow(context),
-                    buildPutAwayRow(context),
-                    buildUploadButton(context),
-                  ],
-                ),
+                  ),
+                  Card(
+                    child: buildIdentityRow(context),
+                  ),
+                  Card(
+                    child: Column(
+                      children: <Widget>[
+                        buildPriceRow(context),
+                        buildTypeRow(context),
+                        buildPaymentRow(context),
+                        buildAreaRow(context),
+                        buildPutAwayRow(context),
+                      ],
+                    ),
+                  ),
+                  buildUploadButton(context),
+                ],
               ),
             ),
           ],
@@ -350,7 +359,8 @@ class _UploadPageState extends State<UploadPage> {
                           child: Text('确定'),
                           onPressed: () {
                             if (RegExp(r'[0-9]')
-                                .hasMatch(priceController.text)||priceController.text.trim()=="面议") {
+                                    .hasMatch(priceController.text) ||
+                                priceController.text.trim() == "面议") {
                               _price = priceController.text;
                               Navigator.of(context).pop();
                             } else {
@@ -368,6 +378,53 @@ class _UploadPageState extends State<UploadPage> {
         ),
         Divider(),
       ],
+    );
+  }
+
+  var _groupValue = 1;
+
+  Widget buildIdentityRow(BuildContext context) {
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 16.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        children: <Widget>[
+          Row(
+            children: <Widget>[
+              Text(
+                "我要卖",
+                style: TextStyle(color: Colors.black, fontSize: 17.0),
+              ),
+              Radio(
+                value: 1,
+                groupValue: _groupValue,
+                onChanged: (v) {
+                  setState(() {
+                    _groupValue = v;
+                  });
+                },
+              ),
+            ],
+          ),
+          Row(
+            children: <Widget>[
+              Text(
+                "我要买",
+                style: TextStyle(color: Colors.black, fontSize: 17.0),
+              ),
+              Radio(
+                value: 2,
+                groupValue: _groupValue,
+                onChanged: (v) {
+                  setState(() {
+                    _groupValue = v;
+                  });
+                },
+              )
+            ],
+          ),
+        ],
+      ),
     );
   }
 
@@ -751,6 +808,7 @@ class _UploadPageState extends State<UploadPage> {
 
   Container buildUploadButton(BuildContext context) {
     return Container(
+      padding: EdgeInsets.all(4.0),
       constraints: BoxConstraints.expand(
         height: Theme.of(context).textTheme.display1.fontSize * 1.1 + 20,
       ),
