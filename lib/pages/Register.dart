@@ -76,7 +76,7 @@ class _RegisterPageState extends State<RegisterPage> {
           },
         );
       } else {
-        verifyText = '$waitTime s后重新发送';
+//        verifyText = '$waitTime s后重新发送';
         if (data['returncode'] == '200') {
           return showDialog<Null>(
             context: context,
