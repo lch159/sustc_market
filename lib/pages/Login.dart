@@ -22,28 +22,57 @@ class _LoginPageState extends State<LoginPage> {
   var _isRemember = false;
   var _isAuto = false;
   var _isObscure = true;
+  var _isEmail = false;
 
   GlobalKey<FormState> _loginFormKey = new GlobalKey<FormState>();
   GlobalKey<FormState> _loginViewKey = new GlobalKey<FormState>();
 
-  bool _isEmail = false;
-
   TextEditingController nameController = TextEditingController();
   TextEditingController passwordController = TextEditingController();
 
-  saveLogInfo(tempID) async {
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    readLogInfo();
+  }
+
+  saveLogInfo(username, email, tempID) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     prefs.setString("isLogin", "1");
-    prefs.setString("temporaryid", tempID.toString());
+    prefs.setString("username", username);
+    prefs.setString("email", email);
+    prefs.setString("temporaryid", tempID);
+    if (_isRemember) {
+      prefs.setString("isRemember", "1");
+      prefs.setString("name", nameController.text);
+      prefs.setString("password", passwordController.text);
+    }
+//    if (_isAuto) {
+//      prefs.setString("isAuto", "1");
+//      prefs.setString("name", nameController.text);
+//
+//    }
 //    prefs.setString("username", )
+  }
+
+  readLogInfo() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    var isRemember = prefs.getString("isRemember");
+
+    if (isRemember == "1") {
+      setState(() {
+        nameController.text = prefs.getString("name");
+        passwordController.text = prefs.getString("password");
+        _isRemember = true;
+      });
+    }
   }
 
   Future<String> get() async {
     var userName;
-
     SharedPreferences prefs = await SharedPreferences.getInstance();
     userName = prefs.getString("temporaryid");
-
     return userName;
   }
 
@@ -83,14 +112,17 @@ class _LoginPageState extends State<LoginPage> {
         );
       } else {
         if (data["returncode"] == "200") {
-          saveLogInfo(data["temporaryid"]);
-
-          Navigator.of(context).push(MaterialPageRoute(
-            builder: (context) {
-              //指定跳转的页面
-              return MainPage();
-            },
-          ));
+          print(data["userinfo"]["email"] );
+          saveLogInfo(data["userinfo"]["username"], data["userinfo"]["email"],
+              data["userinfo"]["temporaryid"]);
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (context) {
+                //指定跳转的页面
+                return MainPage();
+              },
+            ),
+          );
         } else {
           passwordController.clear();
           showDialog<Null>(
@@ -192,6 +224,7 @@ class _LoginPageState extends State<LoginPage> {
       validator: (val) {
         return passwordValidator(val);
       },
+//      initialValue: _isRemember ? iniPassword : '',
       decoration: InputDecoration(
         prefixIcon: Icon(Icons.lock),
         labelText: '请输入你的密码',
