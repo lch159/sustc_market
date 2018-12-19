@@ -124,7 +124,7 @@
         <entry key="flutter">
           <value>
             <list>
-              <option value="H:/Flutter/packages/flutter/lib" />
+              <option value="G:/flutter/packages/flutter/lib" />
             </list>
           </value>
         </entry>
@@ -159,7 +159,7 @@
         <entry key="flutter_test">
           <value>
             <list>
-              <option value="H:/Flutter/packages/flutter_test/lib" />
+              <option value="G:/flutter/packages/flutter_test/lib" />
             </list>
           </value>
         </entry>
@@ -411,7 +411,7 @@
         <entry key="sky_engine">
           <value>
             <list>
-              <option value="H:/Flutter/bin/cache/pkg/sky_engine/lib" />
+              <option value="G:/flutter/bin/cache/pkg/sky_engine/lib" />
             </list>
           </value>
         </entry>
@@ -618,9 +618,9 @@
       <root url="file://$USER_HOME$/AppData/Roaming/Pub/Cache/hosted/pub.flutter-io.cn/watcher-0.9.7+10/lib" />
       <root url="file://$USER_HOME$/AppData/Roaming/Pub/Cache/hosted/pub.flutter-io.cn/web_socket_channel-1.0.9/lib" />
       <root url="file://$USER_HOME$/AppData/Roaming/Pub/Cache/hosted/pub.flutter-io.cn/yaml-2.1.15/lib" />
-      <root url="file://H:/Flutter/bin/cache/pkg/sky_engine/lib" />
-      <root url="file://H:/Flutter/packages/flutter/lib" />
-      <root url="file://H:/Flutter/packages/flutter_test/lib" />
+      <root url="file://G:/flutter/bin/cache/pkg/sky_engine/lib" />
+      <root url="file://G:/flutter/packages/flutter/lib" />
+      <root url="file://G:/flutter/packages/flutter_test/lib" />
     </CLASSES>
     <JAVADOC />
     <SOURCES />

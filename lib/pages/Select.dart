@@ -55,55 +55,70 @@ class _SelectPageState extends State<SelectPage> {
 
   void upgradeItems() async {
     Dio dio = new Dio();
+
     String url = "http://120.79.232.137:8080/helloSSM/dommodity/selectAll";
-    Response response = await dio.get(url);
+    dio.interceptor.response.onSuccess = (Response response) {
+      // 在返回响应数据之前做一些预处理
+      print("connect success");
+      Map<String, dynamic> data = response.data;
 
-    Map<String, dynamic> data = response.data;
-    if (response.statusCode != 200) {
-      showDialog<Null>(
-        context: context,
-        builder: (BuildContext context) {
-          AlertDialog(
-            title: Text('无法连接到服务器，请检查网络'),
-            actions: <Widget>[
-              FlatButton(
-                child: Text('确定'),
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
-              ),
-            ],
-          );
-        },
-      );
-    } else {
-      if (data["returncode"] == "200") {
-        setState(() {
-          var number = int.parse(data["dommoditynumber"]);
-          items = new List<ProductionCard>();
-          for (int i = 0; i < number; i++) {
-            Map<String, dynamic> item = data["dommoditylist"][i];
 
-            items.insert(
-                0,
-                ProductionCard(
-                  id: item['id'],
-                  imagePath: "images/LOGO/1x/logo_mdpi.jpg",
-                  title: item["name"],
-                  description: item["description"],
-                  owner: item["owner"],
-                  status: item["status"],
-                  putAwayTime: item["putawayTime"],
-                  availableTime: item["availableTime"],
-                  price: item["price"],
-                  address: item["address"],
-                  payment: item["paytype"],
-                ));
-          }
-          originItem = items;
-        });
-      }
-    }
+        if (data["returncode"] == "200") {
+          setState(() {
+            var number = int.parse(data["dommoditynumber"]);
+            items = new List<ProductionCard>();
+            for (int i = 0; i < number; i++) {
+              Map<String, dynamic> item = data["dommoditylist"][i];
+
+              items.insert(
+                  0,
+                  ProductionCard(
+                    id: item['id'],
+                    imagePath: "images/LOGO/1x/logo_mdpi.jpg",
+                    title: item["name"],
+                    description: item["description"],
+                    owner: item["owner"],
+                    status: item["status"],
+                    putAwayTime: item["putawayTime"],
+                    availableTime: item["availableTime"],
+                    price: item["price"],
+                    address: item["address"],
+                    payment: item["paytype"],
+                  ));
+            }
+            originItem = items;
+          });
+        }
+
+      return response; // continue
+    };
+    dio.interceptor.response.onError = (DioError e){
+      // 当请求失败时做一些预处理
+      print("connect error");
+      showModalBottomSheet<Null>(context:context, builder:(BuildContext context) {
+        return new Container(
+            child: new Padding(
+                padding: const EdgeInsets.all(32.0),
+                child: new Text(
+                    '网络错误，请检查网络',
+                    textAlign: TextAlign.center,
+                    style: new TextStyle(
+                        color: Theme.of(context).accentColor,
+                        fontSize: 24.0
+                    )
+                )
+            )
+        );
+      });
+      return e;//continue
+    };
+
+    Response response = await dio.get(url).then((response){
+
+      });
+
+
+
   }
 
   void filterChangedTo(int filter, int subFilter) {
@@ -669,7 +684,6 @@ class _SelectPageState extends State<SelectPage> {
                         print(priceToController.text);
                         print("before--");
                         for (int i = 0; i < items.length; i++) {
-
                           print(items[i].price);
                           if (int.parse(items[i].price) <
                                   int.parse(priceFromController.text) ||
@@ -868,7 +882,8 @@ class _ProductionCardState extends State<ProductionCard> {
                     Align(
                       alignment: FractionalOffset.topLeft,
                       child: Container(
-                        padding: EdgeInsets.only(left: 2.0, bottom: 20.0,top: 10.0),
+                        padding:
+                            EdgeInsets.only(left: 2.0, bottom: 20.0, top: 10.0),
                         child: Text(
                           widget.title,
                           style: TextStyle(
@@ -886,8 +901,7 @@ class _ProductionCardState extends State<ProductionCard> {
                       child: RichText(
                         text: TextSpan(
                             text: '￥',
-                            style:
-                                TextStyle(fontSize: 15.0, color: Colors.red),
+                            style: TextStyle(fontSize: 15.0, color: Colors.red),
                             children: <TextSpan>[
                               TextSpan(
                                 text: widget.price,

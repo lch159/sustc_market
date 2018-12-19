@@ -1,7 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:path/path.dart';
-import 'package:redux/redux.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sustc_market/Utils/redux/Store.dart';
 import 'package:sustc_market/pages/Chatting.dart';
@@ -77,6 +76,7 @@ class _MainPageState extends State<MainPage> {
         .get("http://120.79.232.137:8080/helloSSM/dommodity/selectAll");
 
     Map<String, dynamic> data = response.data;
+    print(response.headers);
     if (response.statusCode != 200) {
       showDialog<Null>(
         builder: (BuildContext context) {
