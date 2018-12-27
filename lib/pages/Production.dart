@@ -1,16 +1,24 @@
+import 'dart:io';
+
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 
 class ProductionPage extends StatefulWidget {
   String owner;
   String putAwayTime;
+  String availableTime;
   String address;
   String price;
   String payment;
   String title;
   String description;
+  String operation;
+  String id;
 
   ProductionPage({
     Key key,
+    this.id,
     this.owner,
     this.putAwayTime,
     this.address,
@@ -18,6 +26,8 @@ class ProductionPage extends StatefulWidget {
     this.payment,
     this.title,
     this.description,
+    this.operation,
+    this.availableTime,
   }) : super(key: key);
 
   @override
@@ -29,16 +39,59 @@ class ProductionPage extends StatefulWidget {
 class _ProductionPageState extends State<ProductionPage> {
   bool _isFloatButton = false;
 
-  String getParseInfo() {
-    var _date = widget.putAwayTime.split(new RegExp(r"[/-]"));
+  List<Widget> _images =new List();
 
-    return _date[0] +
+  String getParseInfo() {
+    var parseTime = widget.putAwayTime.split(" ");
+    var year = parseTime[5];
+    var month;
+    switch (parseTime[1]) {
+      case "Jan":
+        month = "1";
+        break;
+      case "Feb":
+        month = "";
+        break;
+      case "Mar":
+        month = "3";
+        break;
+      case "Apr":
+        month = "4";
+        break;
+      case "May":
+        month = "5";
+        break;
+      case "Jun":
+        month = "6";
+        break;
+      case "Jul":
+        month = "7";
+        break;
+      case "Aug":
+        month = "8";
+        break;
+      case "Sep":
+        month = "9";
+        break;
+      case "Oct":
+        month = "10";
+        break;
+      case "Nov":
+        month = "11";
+        break;
+      case "Dec":
+        month = "12";
+        break;
+    }
+    var day = parseTime[2];
+
+    return year +
         "年" +
-        _date[1] +
+        month +
         "月" +
-        _date[2] +
+        day +
         "日" +
-        _date[3] +
+        parseTime[3] +
         "发布于" +
         widget.address;
   }
@@ -48,19 +101,12 @@ class _ProductionPageState extends State<ProductionPage> {
   bool _isCash = false;
   bool _isOthers = false;
 
-  void parsePayment() {
-    var _payments = widget.payment.split(",");
-    if (_payments.contains("微信")) _isWechat = true;
-    if (_payments.contains("支付宝")) _isAlipay = true;
-    if (_payments.contains("现金")) _isCash = true;
-    if (_payments.contains("其他")) _isOthers = true;
-  }
-
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
     parsePayment();
+    _imageDownload(widget.id);
   }
 
   @override
@@ -226,12 +272,7 @@ class _ProductionPageState extends State<ProductionPage> {
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 10.0),
       child: Column(
-        children: <Widget>[
-//          Image.asset("images/TempProductionImage/pro1.jpg"),
-//          Image.asset("images/TempProductionImage/pro2.jpg"),
-//          Image.asset("images/TempProductionImage/pro3.jpg"),
-//          Image.asset("images/TempProductionImage/pro4.jpg"),
-        ],
+        children: _images,
       ),
     );
   }
@@ -289,6 +330,52 @@ class _ProductionPageState extends State<ProductionPage> {
         ),
       ],
     );
+  }
+
+  void parsePayment() {
+    var _payments = widget.payment.split(",");
+    if (_payments.contains("微信")) _isWechat = true;
+    if (_payments.contains("支付宝")) _isAlipay = true;
+    if (_payments.contains("现金")) _isCash = true;
+    if (_payments.contains("其他")) _isOthers = true;
+  }
+
+  void _getImage(List<String> imageNames) {
+
+
+  }
+
+  void _imageDownload(String id) async {
+    Dio dio = new Dio();
+    String url = "http://120.79.232.137:8080/helloSSM/picture/findAll";
+
+//    List<String> _imagesList;
+    FormData imagesData = new FormData.from({"objectid": id});
+    dio.interceptor.response.onSuccess = (Response response) {
+      List<dynamic> imageNames = response.data["pictureIdSet"];
+      print(imageNames.toString());
+      _images = new List();
+      String url =
+          "http://120.79.232.137:8080/helloSSM/picture/download?filename=";
+      for (String image in imageNames) {
+        print(image);
+        setState(() {
+          _images.add(Padding(
+            padding: const EdgeInsets.symmetric(vertical :8.0),
+            child: CachedNetworkImage(
+              imageUrl: url + image,
+              placeholder: CircularProgressIndicator(),
+              errorWidget: Icon(Icons.error),
+              fadeOutDuration: Duration(seconds: 1),
+              fadeInDuration: Duration(seconds: 1),
+            ),
+          ));
+        });
+      }
+      print("connect success");
+    };
+
+    await dio.post(url, data: imagesData);
   }
 
   Stack buildFloatingActionContainer(BuildContext context) {
