@@ -42,83 +42,88 @@ class _SelectPageState extends State<SelectPage> {
   String _dateFrom = '起始日期';
   String _dateTo = '最后日期';
 
-  List<ProductionCard> items = new List<ProductionCard>();
+  List<ProductionCard> _items = new List<ProductionCard>();
   List<ProductionCard> originItem = new List<ProductionCard>();
+
+  ValueNotifier<double> topOffsetLis = new ValueNotifier(0.0);
+  ValueNotifier<double> bottomOffsetLis = new ValueNotifier(0.0);
+
+  FormData _currentCondition;
+
+  int _number = 10;
 
   @override
   void initState() {
     // TODO: implement initState
-
     super.initState();
-    upgradeItems();
+    _items = new List<ProductionCard>();
+
+    upgradeItems(FormData.from({
+      "conditions": "",
+      "orders": "order by putawayTime desc",
+      "number": "limit 10"
+    }));
   }
 
-  void upgradeItems() async {
+  void upgradeItems(FormData formData) async {
     Dio dio = new Dio();
 
-    String url = "http://120.79.232.137:8080/helloSSM/dommodity/selectAll";
-    dio.interceptor.response.onSuccess = (Response response) {
+    String url =
+        "http://120.79.232.137:8080/helloSSM/dommodity/conditionalSelect";
+
+    dio.interceptor.response.onSuccess = (Response response) async {
       // 在返回响应数据之前做一些预处理
-      print("connect success");
+      _items = new List<ProductionCard>();
+      _currentCondition = formData;
       Map<String, dynamic> data = response.data;
 
-
-        if (data["returncode"] == "200") {
-          setState(() {
-            var number = int.parse(data["dommoditynumber"]);
-            items = new List<ProductionCard>();
-            for (int i = 0; i < number; i++) {
-              Map<String, dynamic> item = data["dommoditylist"][i];
-
-              items.insert(
-                  0,
-                  ProductionCard(
-                    id: item['id'],
-                    imagePath: "images/LOGO/1x/logo_mdpi.jpg",
-                    title: item["name"],
-                    description: item["description"],
-                    owner: item["owner"],
-                    status: item["status"],
-                    putAwayTime: item["putawayTime"],
-                    availableTime: item["availableTime"],
-                    price: item["price"],
-                    address: item["address"],
-                    payment: item["paytype"],
-                  ));
-            }
-            originItem = items;
-          });
-        }
-
+      if (data["returncode"] == "200") {
+        setState(() {
+          var number = int.parse(data["dommoditynumber"]);
+          for (int i = number - 1; i > -1; i--) {
+            Map<String, dynamic> item = data["dommoditylist"][i];
+            _items.insert(
+                0,
+                ProductionCard(
+                  id: item['id'],
+                  imagePath: "images/LOGO/1x/logo_mdpi.jpg",
+                  title: item["name"],
+                  description: item["description"],
+                  owner: item["owner"],
+                  status: item["status"],
+                  putAwayTime: item["putawayTime"],
+                  availableTime: item["availableTime"],
+                  price: item["price"],
+                  address: item["address"],
+                  payment: item["paytype"],
+                  operation: item["operation"],
+                ));
+          }
+//          for (int i = number - 1; i > -1; i--) {
+//
+//          }
+        });
+      }
       return response; // continue
     };
-    dio.interceptor.response.onError = (DioError e){
+    dio.interceptor.response.onError = (DioError e) {
       // 当请求失败时做一些预处理
       print("connect error");
-      showModalBottomSheet<Null>(context:context, builder:(BuildContext context) {
-        return new Container(
-            child: new Padding(
-                padding: const EdgeInsets.all(32.0),
-                child: new Text(
-                    '网络错误，请检查网络',
-                    textAlign: TextAlign.center,
-                    style: new TextStyle(
-                        color: Theme.of(context).accentColor,
-                        fontSize: 24.0
-                    )
-                )
-            )
-        );
-      });
-      return e;//continue
+      showModalBottomSheet<Null>(
+          context: context,
+          builder: (BuildContext context) {
+            return new Container(
+                child: new Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: new Text('网络错误，请检查网络',
+                        textAlign: TextAlign.center,
+                        style: new TextStyle(
+                            color: Theme.of(context).accentColor,
+                            fontSize: 24.0))));
+          });
+      return e; //continue
     };
-
-    Response response = await dio.get(url).then((response){
-
-      });
-
-
-
+    await dio.get(url, data: formData);
   }
 
   void filterChangedTo(int filter, int subFilter) {
@@ -207,27 +212,28 @@ class _SelectPageState extends State<SelectPage> {
     return Scaffold(
       appBar: buildAppbar(context),
       body: SmartRefresher(
-        enablePullDown: true,
-        headerBuilder: (context, mode) {
-          return SpinKitThreeBounce(
-            color: Colors.blue,
-            size: 50.0,
-          );
-        },
+        enablePullUp: true,
+        controller: _refreshController,
+        headerBuilder: _headerCreate,
+        footerBuilder: _headerCreate,
+        footerConfig: new RefreshConfig(),
         onRefresh: (up) {
           if (up) {
-            new Future.delayed(const Duration(milliseconds: 2000)).then((val) {
-              upgradeItems();
-              _refreshController.sendBack(true, RefreshStatus.failed);
+            upgradeItems(FormData.from({
+              "conditions": "",
+              "orders": "order by putawayTime desc",
+              "number": "limit 10"
+            }));
+            new Future.delayed(const Duration(milliseconds: 2009)).then((val) {
+              _refreshController.sendBack(true, RefreshStatus.completed);
             });
-          } else {}
+          } else {
+            _number += 10;
+            _currentCondition["number"] = "limit " + _number.toString();
+            upgradeItems(_currentCondition);
+          }
         },
-        controller: _refreshController,
-        headerConfig: RefreshConfig(
-          visibleRange: 75.0,
-          completeDuration: 300,
-        ),
-        enableOverScroll: true,
+        onOffsetChange: _onOffsetCallback,
         child: ListView(
           children: <Widget>[
             buildTabRow(context),
@@ -236,12 +242,29 @@ class _SelectPageState extends State<SelectPage> {
             buildPriceFilter(context),
             buildTimeFilter(context),
             Column(
-              children: items,
+              children: _items,
             ),
           ],
         ),
       ),
     );
+  }
+
+  Widget _headerCreate(BuildContext context, int mode) {
+    return ClassicIndicator(mode: mode);
+  }
+
+  void _onOffsetCallback(bool isUp, double offset) {
+    // if you want change some widgets state ,you should rewrite the callback
+    if (isUp) {
+      topOffsetLis.value = offset;
+    } else {
+      bottomOffsetLis.value = offset;
+    }
+//    if (isUp) {
+//      _headControll.value = offset / 2 + 1.0;
+//    } else
+//      _footControll.value = offset / 2 + 1.0;
   }
 
   AppBar buildAppbar(BuildContext context) {
@@ -465,10 +488,12 @@ class _SelectPageState extends State<SelectPage> {
                 ),
                 onPressed: () {
                   setState(() {
-                    items.sort(
-                        (a, b) => int.parse(a.id).compareTo(int.parse(b.id)));
-
                     filterChangedTo(1, 1);
+                    upgradeItems(FormData.from({
+                      "conditions": "",
+                      "orders": "order by putawayTime desc",
+                      "number": "limit 10"
+                    }));
                   });
                 },
               ),
@@ -505,32 +530,41 @@ class _SelectPageState extends State<SelectPage> {
                 onPressed: () {
                   setState(() {
                     filterChangedTo(1, 2);
-                    items.sort((a, b) {
-                      var putAwayDateA = a.putAwayTime.split("-")[0].split("/");
-                      var putAwayTimeA = a.putAwayTime.split("-")[1].split(":");
-                      DateTime startDateA = new DateTime(
-                          int.parse(putAwayDateA[0]),
-                          int.parse(putAwayDateA[1]),
-                          int.parse(putAwayDateA[2]),
-                          int.parse(putAwayTimeA[0]),
-                          int.parse(putAwayTimeA[1]),
-                          int.parse(putAwayTimeA[2]));
-                      var startDifA =
-                          DateTime.now().difference(startDateA).inMicroseconds;
-                      var putAwayDateB = b.putAwayTime.split("-")[0].split("/");
-                      var putAwayTimeB = b.putAwayTime.split("-")[1].split(":");
-                      DateTime startDateB = new DateTime(
-                          int.parse(putAwayDateB[0]),
-                          int.parse(putAwayDateB[1]),
-                          int.parse(putAwayDateB[2]),
-                          int.parse(putAwayTimeB[0]),
-                          int.parse(putAwayTimeB[1]),
-                          int.parse(putAwayTimeB[2]));
-                      var startDifB =
-                          DateTime.now().difference(startDateB).inMicroseconds;
-                      return startDifA.compareTo(startDifB);
-                    });
+                    upgradeItems(FormData.from({
+                      "conditions": "",
+                      "orders": "order by putawayTime desc",
+                      "number": "limit 10"
+                    }));
                   });
+
+//                  setState(() {
+//                    filterChangedTo(1, 2);
+//                    items.sort((a, b) {
+//                      var putAwayDateA = a.putAwayTime.split("-")[0].split("/");
+//                      var putAwayTimeA = a.putAwayTime.split("-")[1].split(":");
+//                      DateTime startDateA = new DateTime(
+//                          int.parse(putAwayDateA[0]),
+//                          int.parse(putAwayDateA[1]),
+//                          int.parse(putAwayDateA[2]),
+//                          int.parse(putAwayTimeA[0]),
+//                          int.parse(putAwayTimeA[1]),
+//                          int.parse(putAwayTimeA[2]));
+//                      var startDifA =
+//                          DateTime.now().difference(startDateA).inMicroseconds;
+//                      var putAwayDateB = b.putAwayTime.split("-")[0].split("/");
+//                      var putAwayTimeB = b.putAwayTime.split("-")[1].split(":");
+//                      DateTime startDateB = new DateTime(
+//                          int.parse(putAwayDateB[0]),
+//                          int.parse(putAwayDateB[1]),
+//                          int.parse(putAwayDateB[2]),
+//                          int.parse(putAwayTimeB[0]),
+//                          int.parse(putAwayTimeB[1]),
+//                          int.parse(putAwayTimeB[2]));
+//                      var startDifB =
+//                          DateTime.now().difference(startDateB).inMicroseconds;
+//                      return startDifA.compareTo(startDifB);
+//                    });
+//                  });
                 },
               ),
               Divider(),
@@ -570,8 +604,11 @@ class _SelectPageState extends State<SelectPage> {
                 onPressed: () {
                   setState(() {
                     filterChangedTo(1, 3);
-                    items.sort((a, b) =>
-                        int.parse(a.price).compareTo(int.parse(b.price)));
+                    upgradeItems(FormData.from({
+                      "conditions": "",
+                      "orders": "order by price",
+                      "number": "limit 10"
+                    }));
                   });
                 },
               ),
@@ -612,8 +649,11 @@ class _SelectPageState extends State<SelectPage> {
                 onPressed: () {
                   setState(() {
                     filterChangedTo(1, 4);
-                    items.sort((a, b) =>
-                        int.parse(b.price).compareTo(int.parse(a.price)));
+                    upgradeItems(FormData.from({
+                      "conditions": "",
+                      "orders": "order by price desc",
+                      "number": "limit 10"
+                    }));
                   });
                 },
               ),
@@ -675,28 +715,16 @@ class _SelectPageState extends State<SelectPage> {
                       setState(() {
                         _priceTo = val;
                         filterChangedTo(2, 2);
-                        print("-------------------");
-                        originItem = items;
-                        for (int i = 0; i < items.length; i++) {
-                          print(items[i].price);
-                        }
                         print(priceFromController.text);
                         print(priceToController.text);
-                        print("before--");
-                        for (int i = 0; i < items.length; i++) {
-                          print(items[i].price);
-                          if (int.parse(items[i].price) <
-                                  int.parse(priceFromController.text) ||
-                              int.parse(items[i].price) >
-                                  int.parse(priceToController.text)) {
-                            items.remove(items[i]);
-                          }
-                        }
-                        print("after--");
-
-                        for (int i = 0; i < items.length; i++) {
-                          print(items[i].price);
-                        }
+                        upgradeItems(FormData.from({
+                          "conditions": "where price between " +
+                              priceFromController.text +
+                              " and " +
+                              priceToController.text,
+                          "orders": "order by price ",
+                          "number": "limit 10",
+                        }));
                       });
                     },
                   ),
@@ -770,11 +798,23 @@ class _SelectPageState extends State<SelectPage> {
                           onConfirm: (year, month, date) {
                             setState(() {
                               filterChangedTo(3, 2);
-                              _dateTo = year.toString() +
-                                  "." +
-                                  month.toString() +
-                                  "." +
-                                  date.toString();
+                              print(_dateFrom.split(".")[0].toString() +
+                                  _dateFrom.split(".")[1].toString() +
+                                  _dateFrom.split(".")[2].toString());
+                              upgradeItems(FormData.from({
+                                "conditions":
+                                    "where putawaytime between date(" +
+                                        _dateFrom.split(".")[0].toString() +
+                                        _dateFrom.split(".")[1].toString() +
+                                        _dateFrom.split(".")[2].toString() +
+                                        ") and date(" +
+                                        year.toString() +
+                                        month.toString() +
+                                        date.toString() +
+                                        ")",
+                                "orders": "order by price ",
+                                "number": "limit 10",
+                              }));
                             });
                           },
                         );
@@ -814,6 +854,7 @@ class ProductionCard extends StatefulWidget {
     this.payment,
     this.description,
     this.availableTime,
+    this.operation,
   }) : super(key: key);
 
   final Widget child;
@@ -828,25 +869,153 @@ class ProductionCard extends StatefulWidget {
   final String payment;
   final String title;
   final String description;
+  final String operation;
 
   @override
   _ProductionCardState createState() => _ProductionCardState();
 }
 
+DateTime stringParseToDate(String StringTime) {
+  var parseTime = StringTime.split(" ");
+  var year = parseTime[5];
+  var month;
+  switch (parseTime[1]) {
+    case "Jan":
+      month = "1";
+      break;
+    case "Feb":
+      month = "";
+      break;
+    case "Mar":
+      month = "3";
+      break;
+    case "Apr":
+      month = "4";
+      break;
+    case "May":
+      month = "5";
+      break;
+    case "Jun":
+      month = "6";
+      break;
+    case "Jul":
+      month = "7";
+      break;
+    case "Aug":
+      month = "8";
+      break;
+    case "Sep":
+      month = "9";
+      break;
+    case "Oct":
+      month = "10";
+      break;
+    case "Nov":
+      month = "11";
+      break;
+    case "Dec":
+      month = "12";
+      break;
+  }
+  var day = parseTime[2];
+  var putAwayTime = parseTime[3].split(":");
+  DateTime date = new DateTime(
+      int.parse(year),
+      int.parse(month),
+      int.parse(day),
+      int.parse(putAwayTime[0]),
+      int.parse(putAwayTime[1]),
+      int.parse(putAwayTime[2]));
+  return date;
+}
+
+//String dateParseToString(DateTime parseDate) {
+//  var month;
+//  var week;
+//  switch (parseDate.weekday) {
+//    case 1:
+//      week = "Mon";
+//      break;
+//    case 2:
+//      week = "Tues";
+//      break;
+//    case 3:
+//      week = "Wed";
+//      break;
+//    case 4:
+//      week = "Thur";
+//      break;
+//    case 5:
+//      week = "Fri";
+//      break;
+//    case 6:
+//      week = "Sat";
+//      break;
+//    case 7:
+//      week = "Sun";
+//      break;
+//  }
+//
+//  switch (parseDate.month.toString()) {
+//    case "1":
+//      month = "Jan";
+//      break;
+//    case "":
+//      month = "Feb";
+//      break;
+//    case "3":
+//      month = "Mar";
+//      break;
+//    case "4":
+//      month = "Apr";
+//      break;
+//    case "5":
+//      month = "May";
+//      break;
+//    case "6":
+//      month = "Jun";
+//      break;
+//    case "7":
+//      month = "Jul";
+//      break;
+//    case "8":
+//      month = "Aug";
+//      break;
+//    case "9":
+//      month = "Sep";
+//      break;
+//    case "10":
+//      month = "Oct";
+//      break;
+//    case "11":
+//      month = "Nov";
+//      break;
+//    case "12":
+//      month = "Dec";
+//      break;
+//  }
+//
+//  return week +
+//      " " +
+//      month +
+//      " " +
+//      parseDate.day +
+//      " " +
+//      parseDate.hour +
+//      ":" +
+//      parseDate.minute +
+//      ":" +
+//      parseDate.second +
+//      " CST " +
+//      parseDate.year;
+//}
+
 class _ProductionCardState extends State<ProductionCard> {
   String getTimeDifference() {
-    var putAwayDate = widget.putAwayTime.split("-")[0].split("/");
-    var putAwayTime = widget.putAwayTime.split("-")[1].split(":");
-    DateTime startDate = new DateTime(
-        int.parse(putAwayDate[0]),
-        int.parse(putAwayDate[1]),
-        int.parse(putAwayDate[2]),
-        int.parse(putAwayTime[0]),
-        int.parse(putAwayTime[1]),
-        int.parse(putAwayTime[2]));
+    DateTime startDate = stringParseToDate(widget.putAwayTime);
     var dif = DateTime.now().difference(startDate);
     if (dif.inDays == 0) {
-      return dif.inHours.toString() + "小时前";
+      return "今天";
     } else if (dif.inDays >= 1 && dif.inDays < 30) {
       return dif.inDays.toString() + "天前";
     } else if (dif.inDays >= 30 && dif.inDays < 365) {
@@ -982,6 +1151,8 @@ class _ProductionCardState extends State<ProductionCard> {
                 price: widget.price,
                 address: widget.address,
                 payment: widget.payment,
+                id: widget.id,
+                operation: widget.operation,
               );
             },
           ));
@@ -989,4 +1160,18 @@ class _ProductionCardState extends State<ProductionCard> {
       ),
     );
   }
+}
+
+String dateTimeToString(DateTime datetime) {
+  return datetime.year.toString() +
+      "/" +
+      datetime.month.toString() +
+      "/" +
+      datetime.day.toString() +
+      "-" +
+      datetime.hour.toString() +
+      ":" +
+      datetime.minute.toString() +
+      ":" +
+      datetime.second.toString();
 }

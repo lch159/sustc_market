@@ -1,15 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:web_socket_channel/io.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
 class ChattingPage extends StatefulWidget {
   ChattingPage({
     Key key,
-    this.channel,
     this.receiver,
   }) : super(key: key);
 
-  final WebSocketChannel channel;
   final String receiver;
 
   @override
@@ -22,9 +21,11 @@ class _ChattingPageState extends State<ChattingPage>
     with TickerProviderStateMixin {
   List<Message> _messages = new List();
   List<String> _messagesString = new List();
+  bool _isComposing = false;
 
   final TextEditingController _textController = TextEditingController();
   String _username = " ";
+  WebSocketChannel _channel;
 
   @override
   void initState() {
@@ -33,19 +34,143 @@ class _ChattingPageState extends State<ChattingPage>
 
     readLoginInfo().then((loginInfo) {
       _username = loginInfo["username"];
-      _readMessage();
-      _connectWebServer(loginInfo["temporaryid"], widget.receiver);
+      _loadHistoryMessage();
+      _connectWebServer(loginInfo["temporaryid"]);
     });
   }
 
   @override
   void dispose() {
     super.dispose();
-    _saveMessage();
+    _saveMessageToHistory();
     for (Message message in _messages) {
       message.animationController.dispose();
     }
-    widget.channel.sink.close();
+    _channel.sink.close();
+  }
+
+  Future<Map<String, String>> readLoginInfo() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    var isLoginState = prefs.getString("isLogin");
+    Map<String, String> loginInfo = new Map();
+    if (isLoginState == "1") {
+      loginInfo = {
+        "isLogin": "true",
+        "username": prefs.getString("username"),
+        "temporaryid": prefs.getString("temporaryid"),
+      };
+    } else {
+      loginInfo = {
+        "isLogin": "false",
+      };
+    }
+    return loginInfo;
+  }
+
+  void _saveMessageToHistory() async {
+    SharedPreferences preferences = await SharedPreferences.getInstance();
+    await preferences.setStringList(
+        _username + "_" + widget.receiver, _messagesString);
+    List<String> messages = preferences.getStringList("messages");
+    if (messages == null) {
+      List<String> newMessages = new List();
+      newMessages.add(_username + "_" + widget.receiver);
+      preferences.setStringList("messages", newMessages);
+    } else if (!messages.contains(_username + "_" + widget.receiver)) {
+      messages.add(_username + "_" + widget.receiver);
+      await preferences.setStringList("messages", messages);
+    }
+//    preferences.setStringList(_username + "_" + widget.receiver, new List());
+//    preferences.clear();
+  }
+
+  void _loadHistoryMessage() async {
+    SharedPreferences preferences = await SharedPreferences.getInstance();
+    List<String> messageString =
+        preferences.getStringList(_username + "_" + widget.receiver);
+    if (messageString != null) {
+      _messagesString = messageString;
+      for (int i = messageString.length - 1; i > -1; i--) {
+        var parsedMessage = messageString[i].split(",");
+        print(parsedMessage.toString());
+        var isReceive = parsedMessage[4] == "true" ? true : false;
+
+        Message message = Message(
+            source: parsedMessage[0],
+            text: parsedMessage[2],
+            time: parsedMessage[3],
+            isReceive: isReceive,
+            animationController: AnimationController(
+                duration: Duration(milliseconds: 700), vsync: this));
+
+        setState(() {
+          _messages.insert(0,message);
+        });
+        message.animationController.forward();
+      }
+    }
+  }
+
+  void _connectWebServer(String temporaryid) {
+    _channel = IOWebSocketChannel.connect(
+        "ws://120.79.232.137:8080/helloSSM/webSocket");
+    _channel.sink.add("login," + temporaryid);
+    _channel.stream.listen((message) {
+      var temp = message.toString().split(",");
+
+      if (temp.length == 5) {
+        setState(() {
+          _handleReceivedMessage(temp[1], temp[2], temp[3], temp[4]);
+        });
+      }
+    });
+  }
+
+  void _handleReceivedMessage(
+    String source,
+    String destination,
+    String text,
+    String time,
+  ) {
+    Message message = Message(
+        source: source,
+        text: text,
+        isReceive: true,
+        time: time,
+        animationController: AnimationController(
+            duration: Duration(milliseconds: 700), vsync: this));
+    setState(() {
+      _messages.insert(0, message);
+      _messagesString.insert(0,
+          source + "," + destination + "," + text + "," + time + "," + "true");
+    });
+    message.animationController.forward();
+  }
+
+  void _handleSendMessage(String text) {
+    _textController.clear();
+    setState(() {
+      _isComposing = false;
+    });
+    var source = _username;
+    var destination = widget.receiver;
+    var time =
+        DateTime.now().hour.toString() + ":" + DateTime.now().minute.toString();
+    _channel.sink.add("chat," + widget.receiver + "," + text + "," + time);
+
+    Message message = Message(
+        source: destination,
+        text: text,
+        isReceive: false,
+        time: time,
+        animationController: AnimationController(
+            duration: Duration(milliseconds: 700), vsync: this));
+    setState(() {
+      _messages.insert(0, message);
+      _messagesString.insert(0,
+          source + "," + destination + "," + text + "," + time + "," + "false");
+    });
+    message.animationController.forward();
   }
 
   @override
@@ -98,133 +223,23 @@ class _ChattingPageState extends State<ChattingPage>
               Flexible(
                   child: TextField(
                 controller: _textController,
-                onSubmitted: (val) {
-                  _handleMessage(_username, _textController.text,
-                      DateTime.now().toLocal().hour.toString()+":"+ DateTime.now().toLocal().minute.toString(), false, false);
+                onChanged: (String text) {
+                  setState(() {
+                    _isComposing = text.length > 0;
+                  });
                 },
+                onSubmitted: _handleSendMessage,
                 decoration: InputDecoration.collapsed(hintText: '发送消息'),
               )),
               Container(
                 margin: EdgeInsets.symmetric(horizontal: 4.0),
                 child: IconButton(
                   icon: Icon(Icons.send),
-                  onPressed: () => _handleMessage(
-                      _username,
-                      _textController.text,
-                   DateTime.now().toLocal().hour.toString()+":"+ DateTime.now().toLocal().minute.toString(),
-                      false,
-                      false),
+                    onPressed: _isComposing ?
+                        () => _handleSendMessage(_textController.text) : null
                 ),
               )
             ])));
-  }
-
-  Future<Map<String, String>> readLoginInfo() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    var isLoginState = prefs.getString("isLogin");
-    Map<String, String> loginInfo = new Map();
-    if (isLoginState == "1") {
-      loginInfo = {
-        "isLogin": "true",
-        "username": prefs.getString("username"),
-        "temporaryid": prefs.getString("temporaryid"),
-      };
-    } else {
-      loginInfo = {
-        "isLogin": "false",
-      };
-    }
-
-    return loginInfo;
-  }
-
-  void _saveMessage() async {
-    SharedPreferences preferences = await SharedPreferences.getInstance();
-    await preferences.setStringList(
-        _username + "_" + widget.receiver, _messagesString);
-
-    List<String> messages = preferences.getStringList("messages");
-    if (messages == null) {
-      List<String> newMessages = new List();
-      newMessages.add(_username + "_" + widget.receiver);
-      preferences.setStringList("messages", newMessages);
-    } else if (!messages.contains(_username + "_" + widget.receiver)) {
-      messages.add(_username + "_" + widget.receiver);
-      await preferences.setStringList("messages", messages);
-    }
-//    preferences.setStringList(_username + "_" + widget.receiver, new List());
-//    preferences.clear();
-  }
-
-  void _readMessage() async {
-    SharedPreferences preferences = await SharedPreferences.getInstance();
-    List<String> response =
-        preferences.getStringList(_username + "_" + widget.receiver);
-    if (response != null) {
-      for (int i = response.length - 1; i > -1; i--) {
-        var parsedMessage = response[i].split(",");
-
-        var isReceive = parsedMessage[3] == "true" ? true : false;
-
-        _handleMessage(
-          parsedMessage[0],
-          parsedMessage[1],
-          parsedMessage[2],
-          isReceive,
-          true,
-        );
-      }
-    }
-  }
-
-  void _connectWebServer(String temporaryid, receiver) async {
-    widget.channel.sink.add("login," + temporaryid);
-    widget.channel.stream.listen((message) {
-      var temp = message.toString().split(",");
-      if (temp.length == 4) {
-        setState(() {
-          _handleMessage(receiver, temp[2], temp[3], true, false);
-        });
-      }
-    });
-  }
-
-  void _handleMessage(
-    String name,
-    String text,
-    String time,
-    bool isReceive,
-    bool isHistory,
-  ) {
-
-    if (!isReceive && !isHistory) {
-      widget.channel.sink.add(
-          "chat," + widget.receiver + "," + _textController.text + "," + time);
-      _textController.clear();
-    }
-
-    Message message = Message(
-        text: text,
-        isReceive: isReceive,
-        name: name,
-        time: time,
-        animationController: AnimationController(
-            duration: Duration(milliseconds: 700), vsync: this));
-    setState(() {
-      _messages.insert(0, message);
-      _messagesString.insert(
-          0,
-          name +
-              "," +
-              text +
-              "," +
-              time +
-              "," +
-              isReceive.toString() +
-              "," +
-              isHistory.toString());
-    });
-    message.animationController.forward();
   }
 }
 
@@ -233,13 +248,13 @@ class Message extends StatelessWidget {
       {this.text,
       this.animationController,
       this.isReceive,
-      this.name,
+      this.source,
       this.time});
 
   final String text;
   final AnimationController animationController;
   final bool isReceive;
-  final String name;
+  final String source;
   final String time;
 
   @override
@@ -263,13 +278,23 @@ class Message extends StatelessWidget {
                       width: 0.0,
                       height: 0.0,
                     ),
-              isReceive?Container(width: 0.0,height: 0.0,):Padding(
-                padding: const EdgeInsets.only(top: 10.0, bottom: 10.0),
-                child: Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Container(child: Text(time,style: TextStyle(fontSize: 12.0,fontWeight: FontWeight.w200),)),
-                ),
-              ),
+              isReceive
+                  ? Container(
+                      width: 0.0,
+                      height: 0.0,
+                    )
+                  : Padding(
+                      padding: const EdgeInsets.only(top: 10.0, bottom: 10.0),
+                      child: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Container(
+                            child: Text(
+                          time,
+                          style: TextStyle(
+                              fontSize: 12.0, fontWeight: FontWeight.w200),
+                        )),
+                      ),
+                    ),
               Flexible(
                 child: Padding(
                   padding: const EdgeInsets.only(top: 10.0, bottom: 10.0),
@@ -286,13 +311,23 @@ class Message extends StatelessWidget {
                   ),
                 ),
               ),
-              isReceive?Padding(
-                padding: const EdgeInsets.only(top: 10.0, bottom: 10.0),
-                child: Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Container(child: Text(time,style: TextStyle(fontSize: 12.0,fontWeight: FontWeight.w200),)),
-                ),
-              ):Container(width: 0.0,height: 0.0,),
+              isReceive
+                  ? Padding(
+                      padding: const EdgeInsets.only(top: 10.0, bottom: 10.0),
+                      child: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Container(
+                            child: Text(
+                          time,
+                          style: TextStyle(
+                              fontSize: 12.0, fontWeight: FontWeight.w200),
+                        )),
+                      ),
+                    )
+                  : Container(
+                      width: 0.0,
+                      height: 0.0,
+                    ),
               isReceive
                   ? Container(
                       width: 0.0,

@@ -34,6 +34,13 @@ dependencies:
   json_serializable: ^0.5.4
   flutter_countdown: ^0.1.4
   flutter_redux: ^0.5.2
+  connectivity: ^0.3.2
+  font_awesome_flutter: ^8.1.0
+  flutter_slidable: ^0.4.9
+  cached_network_image: ^0.5.1
+  flutter_cache_manager: ^0.2.0+1
+  web_socket_channel: ^1.0.9
+  test: ^1.5.1+1
 
 
 dev_dependencies:
@@ -61,6 +68,7 @@ flutter:
     - images/LOGO/1.5x/logo_hdpi.png
     - images/LOGO/1.5x/logo_hdpi.jpg
     - images/LOGO/4x/logo_xxxhdpi.jpg
+    - images/LOGO/4x/logo_xxxhdpi.png
     - images/Advertisements/ad1.jpg
     - images/Advertisements/ad2.jpg
     - images/Advertisements/ad3.jpg

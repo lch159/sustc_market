@@ -22,12 +22,6 @@ class _RegisterPageState extends State<RegisterPage> {
   TextEditingController authController = TextEditingController();
   GlobalKey<FormState> _registerFormKey = new GlobalKey<FormState>();
 
-  var _username;
-  var _password;
-  var _repassword;
-  var _email;
-  var _auth;
-
   var _nameCorrect = false;
   var _passwordCorrect = false;
   var _rePasswordCorrect = false;
@@ -38,6 +32,25 @@ class _RegisterPageState extends State<RegisterPage> {
 
   var verifyText = '发送验证码';
   var waitTime = 30;
+
+  var _isEdited = true;
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    // TODO: implement dispose
+    super.dispose();
+    nameController.dispose();
+    passwordController.dispose();
+    repasswordController.dispose();
+    emailController.dispose();
+    authController.dispose();
+  }
 
   void _registerFormSubmitted() async {
     var _form = _registerFormKey.currentState;
@@ -51,42 +64,23 @@ class _RegisterPageState extends State<RegisterPage> {
     if (_form.validate()) {
       _form.save();
       Dio dio = new Dio();
-      print(registerFormData);
-      Response response = await dio.get(
-          'http://120.79.232.137:8080/helloSSM/user/register',
-          data: registerFormData);
-
-      Map data = json.decode(response.data);
-      print(data);
-      if (response.statusCode != 200) {
-        return showDialog<Null>(
-          context: context,
-          builder: (BuildContext context) {
-            return AlertDialog(
-              title: Text('无法连接到服务器，请检查网络'),
-              actions: <Widget>[
-                FlatButton(
-                  child: Text('确定'),
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                ),
-              ],
-            );
-          },
-        );
-      } else {
-//        verifyText = '$waitTime s后重新发送';
+      String url = 'http://120.79.232.137:8080/helloSSM/user/register';
+      dio.interceptor.response.onSuccess = (Response response) {
+        Map<String, dynamic> data = response.data;
         if (data['returncode'] == '200') {
-          return showDialog<Null>(
+          showDialog<Null>(
             context: context,
             builder: (BuildContext context) {
               return AlertDialog(
-                title: Text('邮件发送成功，请前往学校邮箱查看'),
+                title: Text('邮件发送成功，请前往学校邮箱查看,30s后可重新发送'),
                 actions: <Widget>[
                   FlatButton(
                     child: Text('确定'),
                     onPressed: () {
+                      setState(() {
+                        _isEdited = false;
+                        verifyText = "30s后可以重新发送";
+                      });
                       Navigator.of(context).pop();
                     },
                   ),
@@ -94,12 +88,30 @@ class _RegisterPageState extends State<RegisterPage> {
               );
             },
           );
+
+          new Future.delayed(const Duration(seconds: 30), () {
+            setState(() {
+              verifyText = "点击发送验证码";
+              _isEdited = true;
+            });
+          });
+
+//          setState(() {
+//            _isEdited = false;
+//            for (int i = 30; i > -1; i--) {
+//              new Future.delayed(const Duration(seconds: 1), () {
+//                verifyText = i.toString() + "s后重新发送";
+//              });
+//            }
+//            _isEdited = true;
+//          });
+
         } else if (data['returncode'] == '201') {
-          var textVerify = '';
+          var textTitle = '';
           var textMessage = '';
           switch (data['report']) {
             case 'username duplicate':
-              textVerify = '重填用户名';
+              textTitle = '重填用户名';
               textMessage = '用户名已被使用,点击确定重新填写';
               break;
           }
@@ -110,7 +122,7 @@ class _RegisterPageState extends State<RegisterPage> {
                 title: Text(textMessage),
                 actions: <Widget>[
                   FlatButton(
-                    child: Text(textVerify),
+                    child: Text(textTitle),
                     onPressed: () {
                       nameController.clear();
                       Navigator.of(context).pop();
@@ -126,55 +138,10 @@ class _RegisterPageState extends State<RegisterPage> {
               );
             },
           );
-        } else {
-          return showDialog<Null>(
-            context: context,
-            builder: (BuildContext context) {
-              return AlertDialog(
-                title: Text('邮件发送失败'),
-                actions: <Widget>[
-                  FlatButton(
-                    child: Text('确定'),
-                    onPressed: () {
-                      emailController.clear();
-                      Navigator.of(context).pop();
-                    },
-                  ),
-                  FlatButton(
-                    child: Text('取消'),
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                    },
-                  ),
-                ],
-              );
-            },
-          );
         }
-      }
-    }
-  }
-
-  void _authSubmitted() async {
-    var _form = _registerFormKey.currentState;
-
-    FormData authFormData = new FormData.from({
-      'username': nameController.text,
-      'code': authController.text,
-    });
-
-    if (_form.validate()) {
-      _form.save();
-      Dio dio = new Dio();
-      print(authFormData);
-      Response response = await dio.get(
-          'http://120.79.232.137:8080/helloSSM/user/emailLink',
-          data: authFormData);
-
-      Map data = json.decode(response.data);
-      print(data);
-      if (response.statusCode != 200) {
-        return showDialog<Null>(
+      };
+      dio.interceptor.response.onError = (Error e) {
+        showDialog<Null>(
           context: context,
           builder: (BuildContext context) {
             return AlertDialog(
@@ -190,12 +157,30 @@ class _RegisterPageState extends State<RegisterPage> {
             );
           },
         );
-      } else {
+      };
+      await dio.post(url, data: registerFormData);
+    }
+  }
+
+  void _authSubmitted() async {
+    var _form = _registerFormKey.currentState;
+
+    FormData authFormData = new FormData.from({
+      'username': nameController.text,
+      'code': authController.text,
+    });
+
+    if (_form.validate()) {
+      _form.save();
+      Dio dio = new Dio();
+      String url = 'http://120.79.232.137:8080/helloSSM/user/emailLink';
+      dio.interceptor.response.onSuccess = (Response response) {
+        Map<String, dynamic> data = response.data;
         if (data['returncode'] == '200') {
-          return showDialog<Null>(
+          showDialog<Null>(
             context: context,
             builder: (BuildContext context) {
-              return AlertDialog(
+              AlertDialog(
                 title: Text('注册成功!'),
                 actions: <Widget>[
                   FlatButton(
@@ -234,29 +219,51 @@ class _RegisterPageState extends State<RegisterPage> {
             },
           );
         }
-      }
+      };
+      dio.interceptor.response.onError = (Error e) {
+        showDialog<Null>(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: Text('无法连接到服务器，请检查网络'),
+              actions: <Widget>[
+                FlatButton(
+                  child: Text('确定'),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                ),
+              ],
+            );
+          },
+        );
+      };
+      await dio.post(url, data: authFormData);
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: buildAppbar(context),
+      appBar: buildAppBar(context),
       body: SingleChildScrollView(
           child: Column(
         children: <Widget>[
           InnerRow(
-            child: Form(
-                key: _registerFormKey,
-                child: Column(
-                  children: <Widget>[
-                    buildNameTextField(context),
-                    buildPasswordTextField(context),
-                    buildRepasswordTextField(context),
-                    buildEmailTextField(context),
-                    buildAuthTextField(context)
-                  ],
-                )),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 10.0),
+              child: Form(
+                  key: _registerFormKey,
+                  child: Column(
+                    children: <Widget>[
+                      buildNameTextField(context),
+                      buildPasswordTextField(context),
+                      buildRepasswordTextField(context),
+                      buildEmailTextField(context),
+                      buildAuthTextField(context)
+                    ],
+                  )),
+            ),
           ),
           InnerRow(child: buildRegisterButton(context))
         ],
@@ -264,20 +271,27 @@ class _RegisterPageState extends State<RegisterPage> {
     );
   }
 
-  AppBar buildAppbar(BuildContext context) {
+  AppBar buildAppBar(BuildContext context) {
     return AppBar(
       leading: IconButton(
         icon: Icon(Icons.arrow_back),
-        tooltip: 'Navigation menu',
+        color: Colors.black45,
         onPressed: () {
           Navigator.pop(context);
         },
       ),
-      title: Text('注册'),
+      title: Text(
+        '注册',
+        style: TextStyle(color: Colors.black45),
+      ),
       actions: <Widget>[
         IconButton(
-            icon: Icon(Icons.error_outline), tooltip: 'Anno', onPressed: null),
+            icon: Icon(Icons.error_outline),
+            onPressed: () {},
+            color: Colors.black45),
       ],
+      backgroundColor: Colors.transparent,
+      elevation: 0.0,
     );
   }
 
@@ -297,7 +311,7 @@ class _RegisterPageState extends State<RegisterPage> {
         labelText: '请输入你的用户名',
       ),
       onSaved: (val) {
-        _username = nameController.text;
+//        _username = nameController.text;
       },
     );
   }
@@ -329,7 +343,7 @@ class _RegisterPageState extends State<RegisterPage> {
       ),
       obscureText: _isPasswordObscure,
       onSaved: (val) {
-        _password = val;
+//        _password = val;
       },
     );
   }
@@ -361,7 +375,7 @@ class _RegisterPageState extends State<RegisterPage> {
       ),
       obscureText: _isRePasswordObscure,
       onSaved: (val) {
-        _repassword = val;
+//        _repassword = val;
       },
     );
   }
@@ -384,7 +398,7 @@ class _RegisterPageState extends State<RegisterPage> {
                     : Icon(Icons.mail),
                 labelText: '请输入你的邮箱'),
             onSaved: (val) {
-              _email = val;
+//              _email = val;
             },
           ),
           flex: 2,
@@ -393,11 +407,9 @@ class _RegisterPageState extends State<RegisterPage> {
           child: Padding(
             child: OutlineButton(
               borderSide: BorderSide(color: Theme.of(context).primaryColor),
-              onPressed: () {
-                _registerFormSubmitted();
-              },
+              onPressed: _isEdited ? _registerFormSubmitted : null,
               child: Text(
-                '发送验证码',
+                verifyText,
                 style: TextStyle(
                     color: Theme.of(context).primaryColor, fontSize: 13.0),
               ),
@@ -421,7 +433,7 @@ class _RegisterPageState extends State<RegisterPage> {
             decoration: InputDecoration(
                 border: OutlineInputBorder(), labelText: '输入验证码'),
             onSaved: (val) {
-              _auth = val;
+//              _auth = val;
             },
           ),
         )),

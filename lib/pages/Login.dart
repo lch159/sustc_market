@@ -17,7 +17,7 @@ class LoginPage extends StatefulWidget {
 class _LoginPageState extends State<LoginPage> {
   var textTips = TextStyle(fontSize: 15.0, color: Colors.black);
   var hintTips = TextStyle(fontSize: 15.0, color: Colors.black26);
-  static const logoPath = 'images/LOGO/1.5x/logo_hdpi.png';
+  static const logoPath = 'images/LOGO/4x/logo_xxxhdpi.png';
 
   var _isRemember = false;
   var _isAuto = false;
@@ -35,6 +35,42 @@ class _LoginPageState extends State<LoginPage> {
     // TODO: implement initState
     super.initState();
     readLogInfo();
+  }
+
+  @override
+  void dispose() {
+    // TODO: implement dispose
+    super.dispose();
+    nameController.dispose();
+    passwordController.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: buildAppBar(context),
+      body: SingleChildScrollView(
+          key: _loginViewKey,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: <Widget>[
+              InnerRow(child: buildLogoImage(context)),
+              InnerRow(
+                child: Form(
+                    key: _loginFormKey,
+                    child: Column(
+                      children: <Widget>[
+                        buildNameTextField(context),
+                        buildPasswordTextField(context)
+                      ],
+                    )),
+              ),
+              InnerRow(child: buildLoginStateRow(context)),
+              InnerRow(child: buildLoginButton(context)),
+              InnerRow(child: buildRegisterButton(context))
+            ],
+          )),
+    );
   }
 
   saveLogInfo(username, email, tempID) async {
@@ -112,7 +148,7 @@ class _LoginPageState extends State<LoginPage> {
         );
       } else {
         if (data["returncode"] == "200") {
-          print(data["userinfo"]["email"] );
+          print(data["userinfo"]["email"]);
           saveLogInfo(data["userinfo"]["username"], data["userinfo"]["email"],
               data["userinfo"]["temporaryid"]);
           Navigator.of(context).push(
@@ -146,49 +182,29 @@ class _LoginPageState extends State<LoginPage> {
     }
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back),
-          tooltip: 'Navigation menu',
-          color: Colors.white,
-          onPressed: () {
-            Navigator.pop(context);
-          },
-        ),
-        title: Text('登录'),
-        actions: <Widget>[
-          IconButton(
-            icon: Icon(Icons.error_outline),
-            color: Colors.white,
-            tooltip: 'Anno',
-            onPressed: null,
-          ),
-        ],
+  AppBar buildAppBar(BuildContext context) {
+    return AppBar(
+      leading: IconButton(
+        icon: Icon(Icons.arrow_back),
+        color: Colors.black45,
+        onPressed: () {
+          Navigator.pop(context);
+        },
       ),
-      body: SingleChildScrollView(
-          key: _loginViewKey,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: <Widget>[
-              InnerRow(child: buildLogoImage(context)),
-              InnerRow(
-                child: Form(
-                    key: _loginFormKey,
-                    child: Column(
-                      children: <Widget>[
-                        buildNameTextField(context),
-                        buildPasswordTextField(context)
-                      ],
-                    )),
-              ),
-              InnerRow(child: buildLoginStateRow(context)),
-              InnerRow(child: buildLoginButton(context)),
-              InnerRow(child: buildRegisterButton(context))
-            ],
-          )),
+      title: Text(
+        '登录',
+        style: TextStyle(color: Colors.black45),
+      ),
+      actions: <Widget>[
+        IconButton(
+          icon: Icon(Icons.error_outline),
+          color: Colors.black45,
+          tooltip: 'Anno',
+          onPressed: () {},
+        ),
+      ],
+      backgroundColor: Colors.transparent,
+      elevation: 0.0,
     );
   }
 
@@ -325,6 +341,18 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
+  //平移动画
+  static SlideTransition createTransition(
+      Animation<double> animation, Widget child) {
+    return new SlideTransition(
+      position: new Tween<Offset>(
+        begin: const Offset(1.0, 0.0),
+        end: const Offset(0.0, 0.0),
+      ).animate(animation),
+      child: child,
+    );
+  }
+
   Container buildRegisterButton(BuildContext context) {
     return Container(
       constraints: BoxConstraints.expand(
@@ -333,12 +361,19 @@ class _LoginPageState extends State<LoginPage> {
       child: OutlineButton(
         borderSide: BorderSide(color: Theme.of(context).primaryColor),
         onPressed: () {
-          Navigator.of(context).push(MaterialPageRoute(
-            builder: (context) {
-              //指定跳转的页面
-              return RegisterPage();
-            },
-          ));
+          Navigator.of(context).push(new PageRouteBuilder(pageBuilder:
+              (BuildContext context, Animation<double> animation,
+                  Animation<double> secondaryAnimation) {
+            return new RegisterPage();
+          }, transitionsBuilder: (
+            BuildContext context,
+            Animation<double> animation,
+            Animation<double> secondaryAnimation,
+            Widget child,
+          ) {
+            // 添加一个平移动画
+            return createTransition(animation, child);
+          }));
         },
         child: Text(
           '注册',

@@ -3,6 +3,8 @@ import 'dart:io';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:sustc_market/pages/Chatting.dart';
+import 'package:web_socket_channel/io.dart';
 
 class ProductionPage extends StatefulWidget {
   String owner;
@@ -39,7 +41,7 @@ class ProductionPage extends StatefulWidget {
 class _ProductionPageState extends State<ProductionPage> {
   bool _isFloatButton = false;
 
-  List<Widget> _images =new List();
+  List<Widget> _images = new List();
 
   String getParseInfo() {
     var parseTime = widget.putAwayTime.split(" ");
@@ -151,6 +153,7 @@ class _ProductionPageState extends State<ProductionPage> {
   //生成顶部菜单栏
   AppBar buildAppbar(BuildContext context) {
     return AppBar(
+      title: Text(widget.title),
       actions: <Widget>[
         PopupMenuButton<String>(
             icon: Icon(Icons.format_list_bulleted),
@@ -340,13 +343,11 @@ class _ProductionPageState extends State<ProductionPage> {
     if (_payments.contains("其他")) _isOthers = true;
   }
 
-  void _getImage(List<String> imageNames) {
-
-
-  }
+  void _getImage(List<String> imageNames) {}
 
   void _imageDownload(String id) async {
     Dio dio = new Dio();
+    print(id);
     String url = "http://120.79.232.137:8080/helloSSM/picture/findAll";
 
 //    List<String> _imagesList;
@@ -361,7 +362,7 @@ class _ProductionPageState extends State<ProductionPage> {
         print(image);
         setState(() {
           _images.add(Padding(
-            padding: const EdgeInsets.symmetric(vertical :8.0),
+            padding: const EdgeInsets.symmetric(vertical: 8.0),
             child: CachedNetworkImage(
               imageUrl: url + image,
               placeholder: CircularProgressIndicator(),
@@ -387,14 +388,42 @@ class _ProductionPageState extends State<ProductionPage> {
   //生成浮动按钮
   FloatingActionButton buildFloatingActionButton(BuildContext context) {
     return FloatingActionButton(
-      child: _isFloatButton ? Icon(Icons.clear) : Icon(Icons.border_color),
+      child: Icon(Icons.chat),
       elevation: 7.0,
       highlightElevation: 14.0,
       onPressed: () {
-        setState(() {
-          _isFloatButton = !_isFloatButton;
-        });
+        Navigator.of(context).push(new PageRouteBuilder(pageBuilder:
+            (BuildContext context, Animation<double> animation,
+                Animation<double> secondaryAnimation) {
+          return new ChattingPage(
+//            channel: IOWebSocketChannel.connect(
+//                "ws://120.79.232.137:8080/helloSSM/webSocket"),
+//            channel: IOWebSocketChannel.connect(
+//                "ws://10.22.14.224:8080/helloSSM/webSocket"),
+            receiver: widget.owner,
+          );
+        }, transitionsBuilder: (
+          BuildContext context,
+          Animation<double> animation,
+          Animation<double> secondaryAnimation,
+          Widget child,
+        ) {
+          // 添加一个平移动画
+          return createTransition(animation, child);
+        }));
       },
+    );
+  }
+
+  //平移动画
+  static SlideTransition createTransition(
+      Animation<double> animation, Widget child) {
+    return new SlideTransition(
+      position: new Tween<Offset>(
+        begin: const Offset(1.0, 0.0),
+        end: const Offset(0.0, 0.0),
+      ).animate(animation),
+      child: child,
     );
   }
 }
