@@ -1,18 +1,30 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
-import 'package:path/path.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
+import 'package:pull_to_refresh/pull_to_refresh.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:sustc_market/Utils/redux/Store.dart';
 import 'package:sustc_market/pages/Chatting.dart';
+import 'package:sustc_market/pages/MyPublish.dart';
 import 'package:sustc_market/pages/Production.dart';
 import 'package:sustc_market/pages/Search.dart';
 import 'package:sustc_market/pages/Login.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:sustc_market/pages/Select.dart';
+import 'package:sustc_market/pages/Settings.dart';
 import 'package:sustc_market/pages/Upload.dart';
-import 'package:sustc_market/Utils/redux/Reducer.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:web_socket_channel/io.dart';
+import 'package:web_socket_channel/status.dart' as status;
+import 'package:web_socket_channel/web_socket_channel.dart';
 
-void main() {
+void main() async {
+//  final channel = await IOWebSocketChannel.connect("ws://localhost:1234");
+//
+//  channel.stream.listen((message) {
+//    channel.sink.add("received!");
+//    channel.sink.close(status.goingAway);
+//  });
+
   runApp(MaterialApp(
     title: 'SUSTech Market',
     home: MainPage(),
@@ -21,6 +33,10 @@ void main() {
 }
 
 class MainPage extends StatefulWidget {
+  MainPage({
+    Key key,
+  }) : super(key: key);
+
   @override
   State<StatefulWidget> createState() {
     return _MainPageState();
@@ -30,24 +46,217 @@ class MainPage extends StatefulWidget {
 class _MainPageState extends State<MainPage> {
   int tabIndex = 0;
 
-  List<ItemRow> itemRows = new List<ItemRow>();
+  List<ItemRow> _items = new List<ItemRow>();
+  List<MessageCard> _messageCardList = new List();
+
+//  List<String> _messageList = new List();
+
   var _isLogin = false;
   var _username = "";
+  var _temporaryid = "";
   var _email = "";
+  var _number = 10;
+  WebSocketChannel _channel;
+
+  RefreshController _refreshProductionController = new RefreshController();
+  RefreshController _refreshMessageController = new RefreshController();
 
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
-    upgradeItems();
-    readLoginInfo();
+    upgradeItems(FormData.from({
+      "conditions": "",
+      "orders": "order by putawayTime desc",
+      "number": "limit 10",
+    }));
+
+    readLoginInfo().then((loginInfo) {
+//      getUnreceivedMessages();
+      _loadMessagesList();
+      _connectWebServer(_temporaryid);
+    });
   }
 
-  iniLoginInfo() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    prefs.setString("isLogin", "0");
-    prefs.setString("temporaryid", "-1");
+  @override
+  void dispose() {
+    // TODO: implement initState
+    super.dispose();
+    _channel.sink.close();
   }
+
+  void _loadMessagesList() async {
+    _messageCardList = new List();
+    SharedPreferences preferences = await SharedPreferences.getInstance();
+    List<String> messageName = preferences.getStringList("messages");
+    if (messageName != null) {
+      for (int i = messageName.length - 1; i > -1; i--) {
+        var parsedName = messageName[i].split(",")[0].split("_");
+        if (parsedName[0] == _username) {
+          List<String> messages = preferences.getStringList(messageName[i]);
+          if (messages.length != 0) {
+            List<String> lastMessage = messages[0].split(",");
+            MessageCard message = MessageCard(
+              lastTime: lastMessage[3],
+              lastMessage: lastMessage[2],
+              senderName: lastMessage[1],
+            );
+            setState(() {
+              _messageCardList.add(message);
+            });
+          }
+        }
+      }
+    }
+  }
+
+  void _connectWebServer(String temporaryid) {
+    _channel = IOWebSocketChannel.connect(
+        "ws://120.79.232.137:8080/helloSSM/webSocket");
+    _channel.sink.add("login," + temporaryid);
+    _channel.stream.listen((message) {
+      var temp = message.toString().split(",");
+      print(temp.toString());
+      if (temp.length == 5) {
+        setState(() {
+          _handleReceivedMessage(temp[1], temp[2], temp[3], temp[4]);
+//          _loadMessagesList();
+        });
+      }
+    });
+  }
+
+  void _handleReceivedMessage(
+    String source,
+    String destination,
+    String text,
+    String time,
+  ) async {
+    SharedPreferences preferences = await SharedPreferences.getInstance();
+    List<String> messageName = preferences.getStringList("messages");
+    String name = source + "_" + destination;
+//    String antiName = destination + "_" + source;
+    List<String> newList;
+    if (messageName != null) {
+      if (messageName.contains(name)) {
+        print("here1");
+        newList = preferences.getStringList(name);
+      } else {
+        print("here3");
+
+        messageName.insert(0, name);
+        preferences.setStringList("messages", messageName);
+        newList = new List();
+        setState(() {
+          MessageCard messageCard = MessageCard(
+            senderName: source,
+            lastMessage: text,
+            lastTime: time,
+          );
+          _messageCardList.insert(0, messageCard);
+        });
+      }
+    } else {
+      print("here2");
+
+      newList = new List();
+      newList.insert(0, name);
+      preferences.setStringList("messages", newList);
+      setState(() {
+        MessageCard messageCard = MessageCard(
+          senderName: source,
+          lastMessage: text,
+          lastTime: time,
+        );
+        _messageCardList.insert(0, messageCard);
+      });
+    }
+    newList.insert(
+        0, source + "," + destination + "," + text + "," + time + "," + "true");
+    print("here4"+newList.toString());
+    preferences.setStringList(name, newList);
+  }
+
+  void saveInCache(List<dynamic> records) async {
+    SharedPreferences preferences = await SharedPreferences.getInstance();
+    for (int i = 0; i < records.length; i++) {
+      print(records[i]);
+//      List<String> messagesDetails = preferences
+//          .getStringList(records["srcname"] + "_" + records["recvname"]);
+//      if (messagesDetails == null) {
+//        List<String> newMessageDetails = new List();
+//        DateTime time = stringParseToDate(records["time"]);
+//        newMessageDetails.insert(
+//            0,
+//            records["recvname"] +
+//                "," +
+//                records["message"] +
+//                "," +
+//                time.hour.toString() +
+//                ":" +
+//                time.minute.toString() +
+//                "," +
+//                true +
+//                "," +
+//                true);
+//        await preferences.setStringList(
+//            records["srcname"] + "_" + records["recvname"], newMessageDetails);
+//      }
+//
+//      List<String> messageNames = preferences.getStringList("messages");
+//      if (messageNames == null) {
+//        List<String> newMessagesNames = new List();
+//        newMessagesNames.add(records["srcname"] + "_" + records["recvname"]);
+//        preferences.setStringList("messages", newMessagesNames);
+//      } else if (!messageNames.contains(records["srcname"] + "_" + records["recvname"])) {
+//        messageNames.add(records["srcname"] + "_" + records["recvname"]);
+//        await preferences.setStringList("messages", messageNames);
+//      }
+    }
+  }
+
+//  void getUnreceivedMessages() async {
+//    String url = "http://120.79.232.137:8080/helloSSM/social/charRecord";
+//
+//    Dio dio = new Dio();
+//
+//    dio.interceptor.response.onSuccess = (Response response) {
+//      Map<String, dynamic> data = response.data;
+//
+//      if (data["returncode"] == "200") {
+//        List<dynamic> records = data["records"];
+//        saveInCache(records);
+//      }
+//    };
+//
+//    dio.post(url, data: FormData.from({"temporaryid": _temporaryid}));
+//  }
+
+//  void _readHistoryMessageInfo() async {
+//    _messages = new List();
+//
+//    SharedPreferences preferences = await SharedPreferences.getInstance();
+//    var messagesNames = preferences.getStringList("messages");
+//    if (messagesNames != null) {
+//      print(messagesNames.length);
+//      if (messagesNames.length != 0) {
+//        for (String name in messagesNames) {
+//          String sender = name.split("_")[0];
+//          print(sender);
+//          if (sender == preferences.getString("username")) {
+//            List<String> message = preferences.getStringList(name);
+//            setState(() {
+//              _messages.add(MessageCard(
+//                lastMessage: message[0].split(",")[1],
+//                lastTime: message[0].split(",")[2],
+//                receiverName: name.split("_")[1],
+//              ));
+//            });
+//          }
+//        }
+//      }
+//    }
+//  }
 
   Future<String> readLoginInfo() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -56,6 +265,7 @@ class _MainPageState extends State<MainPage> {
     if (isLoginState == "1") {
       _isLogin = true;
       _username = prefs.getString("username");
+      _temporaryid = prefs.getString("temporaryid");
       _email = prefs.getString("email");
     } else {
       _isLogin = false;
@@ -70,37 +280,20 @@ class _MainPageState extends State<MainPage> {
     return tempID;
   }
 
-  void upgradeItems() async {
+  void upgradeItems(FormData data) async {
     Dio dio = new Dio();
-    Response response = await dio
-        .get("http://120.79.232.137:8080/helloSSM/dommodity/selectAll");
+    String url =
+        "http://120.79.232.137:8080/helloSSM/dommodity/conditionalSelect";
 
-    Map<String, dynamic> data = response.data;
-    print(response.headers);
-    if (response.statusCode != 200) {
-      showDialog<Null>(
-        builder: (BuildContext context) {
-          AlertDialog(
-            title: Text('无法连接到服务器，请检查网络'),
-            actions: <Widget>[
-              FlatButton(
-                child: Text('确定'),
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
-              ),
-            ],
-          );
-        },
-        context: null,
-      );
-    } else {
+    _items = new List();
+    dio.interceptor.response.onSuccess = (Response response) {
+      Map<String, dynamic> data = response.data;
       if (data["returncode"] == "200") {
         setState(() {
           var number = int.parse(data["dommoditynumber"]);
-          itemRows = new List<ItemRow>();
+          _items = new List<ItemRow>();
 
-          for (int i = 0; i < number;) {
+          for (int i = number - 1; i > -1;) {
             Map<String, dynamic> ritem;
             Map<String, dynamic> litem;
             Widget leftCard;
@@ -108,12 +301,12 @@ class _MainPageState extends State<MainPage> {
             if (number % 2 == 1 && i == 0) {
               litem = data["dommoditylist"][0];
               rightCard = Container(width: 0.0, height: 0.0);
-              i += 1;
+              i -= 1;
             } else {
               ritem = data["dommoditylist"][i];
-              litem = data["dommoditylist"][i + 1];
+              litem = data["dommoditylist"][i - 1];
               rightCard = ItemCard(
-                imagePath: "images/LOGO/1x/logo_mdpi.jpg",
+                imagePath: "images/LOGO/4x/logo_xxxhdpi.png",
                 title: ritem["name"],
                 description: ritem["description"],
                 owner: ritem["owner"],
@@ -123,11 +316,13 @@ class _MainPageState extends State<MainPage> {
                 price: ritem["price"],
                 address: ritem["address"],
                 payment: ritem["paytype"],
+                operation: ritem["operation"],
+                id: ritem["id"],
               );
-              i += 2;
+              i -= 2;
             }
             leftCard = ItemCard(
-              imagePath: "images/LOGO/1x/logo_mdpi.jpg",
+              imagePath: "images/LOGO/4x/logo_xxxhdpi.png",
               title: litem["name"],
               description: litem["description"],
               owner: litem["owner"],
@@ -137,16 +332,41 @@ class _MainPageState extends State<MainPage> {
               price: litem["price"],
               address: litem["address"],
               payment: litem["paytype"],
+              operation: litem["operation"],
+              id: litem["id"],
             );
 
-            print(ritem.toString());
-            print(litem.toString());
-
-            itemRows.insert(0, ItemRow(lchild: leftCard, rchild: rightCard));
+            _items.insert(0, ItemRow(lchild: leftCard, rchild: rightCard));
           }
         });
       }
-    }
+    };
+
+//    dio.interceptor.response.onError = (DioError e) {
+//      // 当请求失败时做一些预处理
+//      print("connect error");
+//      showDialog<Null>(
+//        builder: (BuildContext context) {
+//          return AlertDialog(
+//            title: Text('网络未连接，请检查网络'),
+//            actions: <Widget>[
+//              FlatButton(
+//                child: Text('确定'),
+//                onPressed: () {
+//                  Navigator.of(context).pop();
+//                },
+//              ),
+//            ],
+//          );
+//        },
+//        context: null,
+//      );
+//
+//      return e; //continue
+//    };
+//
+
+    await dio.post(url, data: data);
   }
 
   AppBar buildAppBar(BuildContext context) {
@@ -220,18 +440,6 @@ class _MainPageState extends State<MainPage> {
               ),
             ],
           );
-        } else {
-          return AlertDialog(
-            title: Text("还未开放，敬请期待"),
-            actions: <Widget>[
-              FlatButton(
-                child: Text("确定"),
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
-              ),
-            ],
-          );
         }
       },
     );
@@ -258,7 +466,6 @@ class _MainPageState extends State<MainPage> {
                   tabIndex = 2;
                 }
               });
-
             },
             child: Align(
               alignment: _isLogin ? Alignment.topLeft : Alignment.bottomLeft,
@@ -271,11 +478,8 @@ class _MainPageState extends State<MainPage> {
                         text: _isLogin ? _username : '还未登录，点击登录',
                         style: TextStyle(fontSize: 15.0, color: Colors.white),
                       ),
-//                      TextSpan(
-//                        text: _isLogin ?  '\r\n' : '',
-//                      ),
                       TextSpan(
-                        text: _isLogin ? "\r\n" + _email : ' ',
+                        text: _isLogin ? "\r\n$_email" : ' ',
                         style: TextStyle(fontSize: 15.0, color: Colors.white),
                       ),
                     ]),
@@ -296,19 +500,42 @@ class _MainPageState extends State<MainPage> {
             style: TextStyle(fontSize: 15.0),
           ),
           onTap: () {
-            remindLogin(context);
+            setState(() {
+              if (!_isLogin) {
+                Navigator.push(context,
+                    MaterialPageRoute(builder: (context) => LoginPage()));
+              } else {
+                Navigator.pop(context);
+                tabIndex = 2;
+              }
+            });
           },
         ),
       ),
       ListTile(
         leading: CircleAvatar(child: Icon(Icons.add_shopping_cart)),
         title: Text(
-          '我的交易',
+          '我的发布',
           style: TextStyle(fontSize: 15.0),
         ),
-        subtitle: Text('我买的和我卖的'),
         onTap: () {
           remindLogin(context);
+          if (_isLogin) {
+            Navigator.of(context).pop();
+            Navigator.of(context).push(new PageRouteBuilder(pageBuilder:
+                (BuildContext context, Animation<double> animation,
+                    Animation<double> secondaryAnimation) {
+              return new MyPublishPage();
+            }, transitionsBuilder: (
+              BuildContext context,
+              Animation<double> animation,
+              Animation<double> secondaryAnimation,
+              Widget child,
+            ) {
+              // 添加一个平移动画
+              return createTransition(animation, child);
+            }));
+          }
         },
       ),
       ListTile(
@@ -317,7 +544,22 @@ class _MainPageState extends State<MainPage> {
           '设置',
           style: TextStyle(fontSize: 15.0),
         ),
-        onTap: () => {},
+        onTap: () {
+          Navigator.of(context).pop();
+          Navigator.of(context).push(new PageRouteBuilder(pageBuilder:
+              (BuildContext context, Animation<double> animation,
+                  Animation<double> secondaryAnimation) {
+            return new SettingsPage();
+          }, transitionsBuilder: (
+            BuildContext context,
+            Animation<double> animation,
+            Animation<double> secondaryAnimation,
+            Widget child,
+          ) {
+            // 添加一个平移动画
+            return createTransition(animation, child);
+          }));
+        },
       ),
       AboutListTile(
         icon: CircleAvatar(child: Text('Ab')),
@@ -450,10 +692,20 @@ class _MainPageState extends State<MainPage> {
                         child: Text("确定"),
                         onPressed: () {
                           Navigator.of(context).pop();
-                          Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (context) => LoginPage()));
+                          Navigator.of(context).push(new PageRouteBuilder(
+                              pageBuilder: (BuildContext context,
+                                  Animation<double> animation,
+                                  Animation<double> secondaryAnimation) {
+                            return new LoginPage();
+                          }, transitionsBuilder: (
+                            BuildContext context,
+                            Animation<double> animation,
+                            Animation<double> secondaryAnimation,
+                            Widget child,
+                          ) {
+                            // 添加一个平移动画
+                            return createTransition(animation, child);
+                          }));
                         },
                       ),
                       FlatButton(
@@ -489,10 +741,55 @@ class _MainPageState extends State<MainPage> {
     return bodyWidget;
   }
 
-  SingleChildScrollView buildMainHome(BuildContext context) {
-    return SingleChildScrollView(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+  Widget _headerCreate(BuildContext context, int mode) {
+    return ClassicIndicator(mode: mode);
+  }
+
+  ValueNotifier<double> topOffsetLis = new ValueNotifier(0.0);
+  ValueNotifier<double> bottomOffsetLis = new ValueNotifier(0.0);
+
+  void _onOffsetCallback(bool isUp, double offset) {
+    // if you want change some widgets state ,you should rewrite the callback
+    if (isUp) {
+      topOffsetLis.value = offset;
+    } else {
+      bottomOffsetLis.value = offset;
+    }
+  }
+
+  Widget buildMainHome(BuildContext context) {
+    return SmartRefresher(
+      enablePullUp: true,
+      controller: _refreshProductionController,
+      headerBuilder: _headerCreate,
+      footerBuilder: _headerCreate,
+      footerConfig: new RefreshConfig(),
+      onRefresh: (up) {
+        if (up) {
+          _number = 10;
+          upgradeItems(FormData.from({
+            "conditions": "",
+            "orders": "order by putawayTime desc",
+            "number": "limit 10"
+          }));
+          new Future.delayed(const Duration(milliseconds: 2009)).then((val) {
+            _refreshProductionController.sendBack(
+                true, RefreshStatus.completed);
+          });
+        } else {
+          _number += 10;
+          upgradeItems(FormData.from({
+            "conditions": "",
+            "orders": "order by putawayTime desc",
+            "number": "limit " + _number.toString(),
+          }));
+          new Future.delayed(const Duration(milliseconds: 2009)).then((val) {
+            _refreshProductionController.sendBack(false, RefreshStatus.noMore);
+          });
+        }
+      },
+      onOffsetChange: _onOffsetCallback,
+      child: ListView(
         children: <Widget>[
           CarouselSlider(
               items: [1, 2, 3, 4, 5].map((i) {
@@ -500,7 +797,8 @@ class _MainPageState extends State<MainPage> {
                   builder: (BuildContext context) {
                     return Container(
                       width: MediaQuery.of(context).size.width,
-                      margin: EdgeInsets.symmetric(horizontal: 5.0),
+                      margin:
+                          EdgeInsets.symmetric(horizontal: 5.0, vertical: 5.0),
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(4.0),
                         child: Image.asset(
@@ -549,7 +847,10 @@ class _MainPageState extends State<MainPage> {
                       ),
                       InnerButton(
                         text: Text('服饰'),
-                        child: Icon(Icons.accessibility),
+                        child: Icon(
+                          FontAwesomeIcons.tshirt,
+                          size: 19.0,
+                        ),
                       ),
                       InnerButton(
                         text: Text('信息资源'),
@@ -567,47 +868,32 @@ class _MainPageState extends State<MainPage> {
               )),
           Divider(),
           Column(
-            children: itemRows,
+            children: _items,
           )
         ],
       ),
     );
   }
 
-  ListView buildMainMessage(BuildContext build) {
-    return ListView.builder(
-      itemBuilder: (context, index) {
-        return Card(
-          child: FlatButton(
-            child: ListTile(
-              title: Text('UserName'),
-              subtitle: Text('Message Content'),
-              //之前显示icon
-              leading: Container(
-                decoration: BoxDecoration(
-                    borderRadius: BorderRadius.all(Radius.circular(90.0)),
-                    color: Colors.blue),
-                width: 50.0,
-                height: 50.0,
-                child: Icon(
-                  Icons.person_outline,
-                  color: Colors.white,
-                ),
-              ),
-              trailing: Text(
-                '18:18',
-                style: TextStyle(color: Colors.grey),
-              ),
-              //之后显示checkBox
-            ),
-            onPressed: () {
-              Navigator.push(context,
-                  MaterialPageRoute(builder: (context) => ChattingPage()));
-            },
-          ),
-        );
+  Widget buildMainMessage(BuildContext build) {
+    return SmartRefresher(
+      enablePullDown: true,
+      controller: _refreshMessageController,
+      headerBuilder: _headerCreate,
+      onRefresh: (up) {
+        if (up) {
+          _loadMessagesList();
+          new Future.delayed(const Duration(milliseconds: 2009)).then((val) {
+            _refreshMessageController.sendBack(true, RefreshStatus.completed);
+          });
+        } else {}
       },
-      itemCount: 20,
+      onOffsetChange: _onOffsetCallback,
+      child: ListView.builder(
+        padding: EdgeInsets.all(8.0),
+        itemCount: _messageCardList.length,
+        itemBuilder: (_, index) => _messageCardList[index],
+      ),
     );
   }
 
@@ -616,10 +902,52 @@ class _MainPageState extends State<MainPage> {
     return Scaffold(
       appBar: buildAppBar(context),
       drawer: buildDrawer(context),
-//      body: bodies[tabIndex],
       body: buildBody(context),
       bottomNavigationBar: buildBottomNavigationBar(context),
       floatingActionButton: buildFloatingActionButton(context),
+    );
+  }
+
+  Widget buildSingleRow(BuildContext context, String text, bool isDivided,
+      VoidCallback callback) {
+    return Column(
+      children: <Widget>[
+        FlatButton(
+          child: Padding(
+            padding: EdgeInsets.symmetric(horizontal: 16.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: <Widget>[
+                Text(
+                  text,
+                  style: TextStyle(color: Colors.black, fontSize: 17.0),
+                ),
+                RichText(
+                  text: TextSpan(
+                      text: "",
+                      style: TextStyle(fontSize: 17.0, color: Colors.black),
+                      children: <TextSpan>[
+                        TextSpan(
+                          text: "",
+                          style: TextStyle(fontSize: 17.0, color: Colors.black),
+                        ),
+                      ]),
+                ),
+                Icon(Icons.keyboard_arrow_right),
+              ],
+            ),
+          ),
+          onPressed: callback,
+        ),
+        isDivided
+            ? Divider(
+                height: 10.0,
+              )
+            : Container(
+                width: 0.0,
+                height: 5.0,
+              ),
+      ],
     );
   }
 
@@ -641,7 +969,7 @@ class _MainPageState extends State<MainPage> {
                         child: ClipRRect(
                           borderRadius: BorderRadius.circular(4.0),
                           child: Image.asset(
-                            "images/LOGO/1.5x/logo_hdpi.png",
+                            "images/LOGO/4x/logo_xxxhdpi.png",
                             fit: BoxFit.cover,
                           ),
                         ),
@@ -764,334 +1092,86 @@ class _MainPageState extends State<MainPage> {
           Card(
             child: Column(
               children: <Widget>[
-                Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 16.0),
-                  child: FlatButton(
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: <Widget>[
-                        Text(
-                          "我的交易",
-                          style: TextStyle(color: Colors.black, fontSize: 17.0),
-                        ),
-                        RichText(
-                          text: TextSpan(
-                              text: "",
-                              style: TextStyle(
-                                  fontSize: 17.0, color: Colors.black),
-                              children: <TextSpan>[
-                                TextSpan(
-                                  text: "",
-                                  style: TextStyle(
-                                      fontSize: 17.0, color: Colors.black),
-                                ),
-                              ]),
-                        ),
-                        Icon(Icons.keyboard_arrow_right),
-                      ],
-                    ),
-                    onPressed: () {
-                      remindLogin(context);
-                    },
-                  ),
+                buildSingleRow(
+                  context,
+                  "我的交易",
+                  true,
+                  () {
+                    remindLogin(context);
+                  },
                 ),
-                Divider(),
-                Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 16.0),
-                  child: FlatButton(
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: <Widget>[
-                        Text(
-                          "我发布的",
-                          style: TextStyle(color: Colors.black, fontSize: 17.0),
-                        ),
-                        RichText(
-                          text: TextSpan(
-                              text: "",
-                              style: TextStyle(
-                                  fontSize: 17.0, color: Colors.black),
-                              children: <TextSpan>[
-                                TextSpan(
-                                  text: "",
-                                  style: TextStyle(
-                                      fontSize: 17.0, color: Colors.black),
-                                ),
-                              ]),
-                        ),
-                        Icon(Icons.keyboard_arrow_right),
-                      ],
-                    ),
-                    onPressed: () {
-                      remindLogin(context);
-                    },
-                  ),
-                ),
-                Divider(),
-                Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 16.0),
-                  child: FlatButton(
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: <Widget>[
-                        Text(
-                          "我卖出的",
-                          style: TextStyle(color: Colors.black, fontSize: 17.0),
-                        ),
-                        RichText(
-                          text: TextSpan(
-                              text: "",
-                              style: TextStyle(
-                                  fontSize: 17.0, color: Colors.black),
-                              children: <TextSpan>[
-                                TextSpan(
-                                  text: "",
-                                  style: TextStyle(
-                                      fontSize: 17.0, color: Colors.black),
-                                ),
-                              ]),
-                        ),
-                        Icon(Icons.keyboard_arrow_right),
-                      ],
-                    ),
-                    onPressed: () {
-                      remindLogin(context);
-                    },
-                  ),
-                ),
-                Divider(),
-                Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 16.0),
-                  child: FlatButton(
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: <Widget>[
-                        Text(
-                          "我买到的",
-                          style: TextStyle(color: Colors.black, fontSize: 17.0),
-                        ),
-                        RichText(
-                          text: TextSpan(
-                              text: "",
-                              style: TextStyle(
-                                  fontSize: 17.0, color: Colors.black),
-                              children: <TextSpan>[
-                                TextSpan(
-                                  text: "",
-                                  style: TextStyle(
-                                      fontSize: 17.0, color: Colors.black),
-                                ),
-                              ]),
-                        ),
-                        Icon(Icons.keyboard_arrow_right),
-                      ],
-                    ),
-                    onPressed: () {
-                      remindLogin(context);
-                    },
-                  ),
-                ),
-                Divider(),
-                Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 16.0),
-                  child: FlatButton(
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: <Widget>[
-                        Text(
-                          "我收藏的",
-                          style: TextStyle(color: Colors.black, fontSize: 17.0),
-                        ),
-                        RichText(
-                          text: TextSpan(
-                              text: "",
-                              style: TextStyle(
-                                  fontSize: 17.0, color: Colors.black),
-                              children: <TextSpan>[
-                                TextSpan(
-                                  text: "",
-                                  style: TextStyle(
-                                      fontSize: 17.0, color: Colors.black),
-                                ),
-                              ]),
-                        ),
-                        Icon(Icons.keyboard_arrow_right),
-                      ],
-                    ),
-                    onPressed: () {
-                      remindLogin(context);
-                    },
-                  ),
-                ),
-                Divider(),
-                Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 16.0),
-                  child: FlatButton(
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: <Widget>[
-                        Text(
-                          "我的消息",
-                          style: TextStyle(color: Colors.black, fontSize: 17.0),
-                        ),
-                        RichText(
-                          text: TextSpan(
-                              text: "",
-                              style: TextStyle(
-                                  fontSize: 17.0, color: Colors.black),
-                              children: <TextSpan>[
-                                TextSpan(
-                                  text: "",
-                                  style: TextStyle(
-                                      fontSize: 17.0, color: Colors.black),
-                                ),
-                              ]),
-                        ),
-                        Icon(Icons.keyboard_arrow_right),
-                      ],
-                    ),
-                    onPressed: () {
-                      setState(() {
-                        tabIndex = 1;
-                      });
-                    },
-                  ),
-                ),
-                Divider()
+                buildSingleRow(context, "我发布的", true, () {
+                  if (_isLogin) {
+                    Navigator.of(context).push(new PageRouteBuilder(pageBuilder:
+                        (BuildContext context, Animation<double> animation,
+                            Animation<double> secondaryAnimation) {
+                      return new MyPublishPage();
+                    }, transitionsBuilder: (
+                      BuildContext context,
+                      Animation<double> animation,
+                      Animation<double> secondaryAnimation,
+                      Widget child,
+                    ) {
+                      // 添加一个平移动画
+                      return createTransition(animation, child);
+                    }));
+                  } else {
+                    remindLogin(context);
+                  }
+                }),
+                buildSingleRow(context, "我卖出的", true, () {
+                  remindLogin(context);
+                }),
+                buildSingleRow(context, "我买到的", true, () {
+                  remindLogin(context);
+                }),
+                buildSingleRow(context, "我收藏的", true, () {
+                  remindLogin(context);
+                }),
+                buildSingleRow(context, "我的消息", false, () {
+                  setState(() {
+                    tabIndex = 1;
+                  });
+                }),
               ],
             ),
           ),
           Card(
-            child: Padding(
-              padding: EdgeInsets.symmetric(horizontal: 16.0),
-              child: FlatButton(
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: <Widget>[
-                    Text(
-                      "设置",
-                      style: TextStyle(color: Colors.black, fontSize: 17.0),
-                    ),
-                    RichText(
-                      text: TextSpan(
-                          text: "",
-                          style: TextStyle(fontSize: 17.0, color: Colors.black),
-                          children: <TextSpan>[
-                            TextSpan(
-                              text: "",
-                              style: TextStyle(
-                                  fontSize: 17.0, color: Colors.black),
-                            ),
-                          ]),
-                    ),
-                    Icon(Icons.keyboard_arrow_right),
-                  ],
-                ),
-                onPressed: () {},
-              ),
+            child: buildSingleRow(
+              context,
+              "设置",
+              false,
+              () {
+                Navigator.of(context).push(new PageRouteBuilder(pageBuilder:
+                    (BuildContext context, Animation<double> animation,
+                        Animation<double> secondaryAnimation) {
+                  return new SettingsPage();
+                }, transitionsBuilder: (
+                  BuildContext context,
+                  Animation<double> animation,
+                  Animation<double> secondaryAnimation,
+                  Widget child,
+                ) {
+                  // 添加一个平移动画
+                  return createTransition(animation, child);
+                }));
+              },
             ),
           ),
-          _isLogin
-              ? Container(
-                  constraints: BoxConstraints.expand(
-                    height:
-                        Theme.of(context).textTheme.display1.fontSize * 1.1 +
-                            10,
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(4.0),
-                    child: RaisedButton(
-                      onPressed: () {
-                        Future<bool> logout() async {
-                          SharedPreferences prefs =
-                              await SharedPreferences.getInstance();
-                          var isLogin = prefs.setString("isLogin", "0");
-                          prefs.setString("temporaryid", "0");
-                          return isLogin;
-                        }
-
-                        logout();
-                        showDialog<Null>(
-                          context: context,
-                          builder: (BuildContext context) {
-                            return AlertDialog(
-                              title: Text("退出登录成功"),
-                              actions: <Widget>[
-                                FlatButton(
-                                  child: Text("确定"),
-                                  onPressed: () {
-                                    Navigator.of(context).pop();
-                                    Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                            builder: (context) => MainPage()));
-                                  },
-                                ),
-                              ],
-                            );
-                          },
-                        );
-                      },
-                      color: Colors.red,
-                      child: Text(
-                        "退出登录",
-                        style: TextStyle(color: Colors.white),
-                      ),
-                    ),
-                  ),
-                )
-              : Container(
-                  width: 0.0,
-                  height: 0.0,
-                )
         ],
       ),
     );
   }
-}
 
-//内部空间中行设定
-class InnerRow extends StatefulWidget {
-  const InnerRow({
-    Key key,
-    this.child,
-  }) : super(key: key);
-
-  final Widget child;
-
-  @override
-  _InnerRowState createState() => _InnerRowState();
-}
-
-class _InnerRowState extends State<InnerRow> {
-  @override
-  Widget build(BuildContext context) {
-    // TODO: implement build
-    return Container(
-      margin: EdgeInsets.only(top: 5.0, bottom: 5.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: <Widget>[
-          Expanded(
-            child: Container(
-              width: 0.0,
-              height: 0.0,
-            ),
-            flex: 1,
-          ),
-          Expanded(
-            child: widget.child,
-            flex: 30,
-          ),
-          Expanded(
-            child: Container(
-              width: 0.0,
-              height: 0.0,
-            ),
-            flex: 1,
-          ),
-        ],
-      ),
+  //平移动画
+  static SlideTransition createTransition(
+      Animation<double> animation, Widget child) {
+    return new SlideTransition(
+      position: new Tween<Offset>(
+        begin: const Offset(1.0, 0.0),
+        end: const Offset(0.0, 0.0),
+      ).animate(animation),
+      child: child,
     );
   }
 }
@@ -1131,6 +1211,7 @@ class _InnerButtonState extends State<InnerButton> {
 class ItemCard extends StatefulWidget {
   const ItemCard({
     Key key,
+    this.id,
     this.child,
     this.title,
     this.imagePath,
@@ -1142,8 +1223,9 @@ class ItemCard extends StatefulWidget {
     this.payment,
     this.description,
     this.availableTime,
+    this.operation,
   }) : super(key: key);
-
+  final String id;
   final Widget child;
   final String imagePath;
   final String status;
@@ -1155,6 +1237,7 @@ class ItemCard extends StatefulWidget {
   final String payment;
   final String title;
   final String description;
+  final String operation;
 
   @override
   _ItemCardState createState() => _ItemCardState();
@@ -1172,9 +1255,8 @@ class _ItemCardState extends State<ItemCard> {
           children: <Widget>[
             Expanded(
               child: Container(
-                color: Colors.black12,
                 child: Image.asset(
-                  'images/LOGO/4x/logo_xxxhdpi.jpg',
+                  'images/LOGO/4x/logo_xxxhdpi.png',
                   fit: BoxFit.fill,
                 ),
               ),
@@ -1225,6 +1307,8 @@ class _ItemCardState extends State<ItemCard> {
                 price: widget.price,
                 address: widget.address,
                 payment: widget.payment,
+                operation: widget.operation,
+                id: widget.id,
               );
             },
           ));
@@ -1264,4 +1348,110 @@ class _ItemRowState extends State<ItemRow> {
       ),
     );
   }
+}
+
+//消息卡片
+class MessageCard extends StatelessWidget {
+  MessageCard({this.lastMessage, this.lastTime, this.senderName});
+
+  final String lastMessage;
+  final String lastTime;
+  final String senderName;
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      child: FlatButton(
+        child: ListTile(
+          title: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: <Widget>[
+              Text(senderName),
+              Text(
+                lastTime,
+                style: TextStyle(color: Colors.grey),
+              ),
+            ],
+          ),
+          subtitle: Text(lastMessage),
+          //之前显示icon
+          leading: Container(
+            decoration: BoxDecoration(
+                borderRadius: BorderRadius.all(Radius.circular(90.0)),
+                color: Colors.blue),
+            width: 50.0,
+            height: 50.0,
+            child: Icon(
+              Icons.person_outline,
+              color: Colors.white,
+            ),
+          ),
+
+          //之后显示checkBox
+        ),
+        onPressed: () {
+          Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: (context) => ChattingPage(
+                        receiver: senderName,
+                      )));
+        },
+      ),
+    );
+  }
+}
+
+DateTime stringParseToDate(String StringTime) {
+  var parseTime = StringTime.split(" ");
+  var year = parseTime[5];
+  var month;
+  switch (parseTime[1]) {
+    case "Jan":
+      month = "1";
+      break;
+    case "Feb":
+      month = "";
+      break;
+    case "Mar":
+      month = "3";
+      break;
+    case "Apr":
+      month = "4";
+      break;
+    case "May":
+      month = "5";
+      break;
+    case "Jun":
+      month = "6";
+      break;
+    case "Jul":
+      month = "7";
+      break;
+    case "Aug":
+      month = "8";
+      break;
+    case "Sep":
+      month = "9";
+      break;
+    case "Oct":
+      month = "10";
+      break;
+    case "Nov":
+      month = "11";
+      break;
+    case "Dec":
+      month = "12";
+      break;
+  }
+  var day = parseTime[2];
+  var putAwayTime = parseTime[3].split(":");
+  DateTime date = new DateTime(
+      int.parse(year),
+      int.parse(month),
+      int.parse(day),
+      int.parse(putAwayTime[0]),
+      int.parse(putAwayTime[1]),
+      int.parse(putAwayTime[2]));
+  return date;
 }
