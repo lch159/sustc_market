@@ -27,7 +27,7 @@ class _UploadPageState extends State<UploadPage> {
   GlobalKey<FormState> _priceKey = new GlobalKey<FormState>();
   GlobalKey<FormState> _uploadFormKey = new GlobalKey<FormState>();
 
-  var temporaryid = "";
+  var _temporaryid = "";
   var _title = "";
   var _description = "";
   var _price = "";
@@ -39,6 +39,9 @@ class _UploadPageState extends State<UploadPage> {
   var _operation = "S";
   var _objectid = "";
 
+
+  List<SelectTypeRow> _types;
+
   File _image1;
   File _image2;
   File _image3;
@@ -46,16 +49,37 @@ class _UploadPageState extends State<UploadPage> {
   @override
   void initState() {
     // TODO: implement initState
+    super.initState();
+    _getAllType();
     selectedTypeList = [];
     selectedPaymentList = [];
-    super.initState();
   }
 
-  Future<String> getTempID() async {
+  Future<String> _getTempID() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    temporaryid = prefs.getString("temporaryid");
+    _temporaryid = prefs.getString("temporaryid");
 
-    return temporaryid;
+    return _temporaryid;
+  }
+
+  void _getAllType() async {
+    _types = new List();
+    String url = "http://120.79.232.137:8080/helloSSM/dommodity/getAllType";
+    Dio dio = new Dio();
+    dio.interceptor.response.onSuccess = (Response response) {
+      Map<String, dynamic> data = response.data;
+      if (data["returncode"] == "200") {
+        for (dynamic type in data["types"]) {
+          setState(() {
+            _types.add(SelectTypeRow(
+              type: type.toString(),
+            ));
+          });
+        }
+      }
+    };
+
+    dio.get(url);
   }
 
   void _imageSubmitted(File image, int index) async {
@@ -79,9 +103,9 @@ class _UploadPageState extends State<UploadPage> {
 
     if (_form.validate()) {
       SharedPreferences prefs = await SharedPreferences.getInstance();
-      temporaryid = prefs.getString("temporaryid");
+      _temporaryid = prefs.getString("temporaryid");
       FormData uploadFormData = new FormData.from({
-        "temporaryid": temporaryid,
+        "temporaryid": _temporaryid,
         "name": titleController.text,
         "description": descriptionController.text,
         "status": "SELLING",
@@ -711,29 +735,8 @@ class _UploadPageState extends State<UploadPage> {
                   title: Text('请选择种类'),
                   contentPadding: EdgeInsets.symmetric(horizontal: 20.0),
                   children: <Widget>[
-                    SelectTypeRow(
-                      type: "书本",
-                    ),
-                    SelectTypeRow(
-                      type: "服饰",
-                    ),
-                    SelectTypeRow(
-                      type: "交通",
-                    ),
-                    SelectTypeRow(
-                      type: "化妆",
-                    ),
-                    SelectTypeRow(
-                      type: "服务",
-                    ),
-                    SelectTypeRow(
-                      type: "娱乐",
-                    ),
-                    SelectTypeRow(
-                      type: "电子",
-                    ),
-                    SelectTypeRow(
-                      type: "食品",
+                    Column(
+                      children: _types,
                     ),
                     FlatButton(
                         child: Text(
