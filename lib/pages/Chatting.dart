@@ -1,4 +1,6 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:web_socket_channel/io.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
@@ -7,9 +9,13 @@ class ChattingPage extends StatefulWidget {
   ChattingPage({
     Key key,
     this.receiver,
+    this.isFromProduction,
+    this.itemId,
   }) : super(key: key);
 
   final String receiver;
+  final bool isFromProduction;
+  final String itemId;
 
   @override
   State<StatefulWidget> createState() {
@@ -25,7 +31,9 @@ class _ChattingPageState extends State<ChattingPage>
 
   final TextEditingController _textController = TextEditingController();
   String _username = " ";
+  String _temporaryid = "";
   WebSocketChannel _channel;
+  bool _extraInfo = false;
 
   @override
   void initState() {
@@ -34,6 +42,7 @@ class _ChattingPageState extends State<ChattingPage>
 
     readLoginInfo().then((loginInfo) {
       _username = loginInfo["username"];
+      _temporaryid = loginInfo["temporaryid"];
       _loadHistoryMessage();
       _connectWebServer(loginInfo["temporaryid"]);
     });
@@ -104,7 +113,7 @@ class _ChattingPageState extends State<ChattingPage>
                 duration: Duration(milliseconds: 700), vsync: this));
 
         setState(() {
-          _messages.insert(0,message);
+          _messages.insert(0, message);
         });
         message.animationController.forward();
       }
@@ -173,6 +182,43 @@ class _ChattingPageState extends State<ChattingPage>
     message.animationController.forward();
   }
 
+  void _createOrder() async {
+    Dio dio = new Dio();
+    FormData data = FormData.from({
+      "temporaryid": _temporaryid,
+      "type": "B",
+      "dommodityid": widget.itemId,
+      "number": "1",
+    });
+    String url = "http://120.79.232.137:8080/helloSSM/order/create";
+    dio.interceptor.response.onSuccess = (Response response) {
+      _handleSendMessage("我已成功下单，请卖家即使查阅订单");
+      showDialog<Null>(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text("成功下单"),
+            actions: <Widget>[
+              FlatButton(
+                child: Text("确定"),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+            ],
+          );
+        },
+      );
+      _extraInfo=!_extraInfo;
+    };
+    dio.interceptor.response.onError = (Error e) {
+
+    };
+
+    dio.get(url, data: data);
+
+  }
+
   @override
   Widget build(BuildContext context) {
     // TODO: implement build
@@ -216,30 +262,88 @@ class _ChattingPageState extends State<ChattingPage>
 
   Widget _buildTextComposer(BuildContext context) {
     return IconTheme(
-        data: IconThemeData(color: Theme.of(context).accentColor),
-        child: Container(
-            margin: const EdgeInsets.symmetric(horizontal: 8.0),
-            child: Row(children: <Widget>[
-              Flexible(
+      data: IconThemeData(color: Theme.of(context).accentColor),
+      child: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 8.0),
+        child: Column(
+          children: <Widget>[
+            Row(
+              children: <Widget>[
+                Flexible(
                   child: TextField(
-                controller: _textController,
-                onChanged: (String text) {
-                  setState(() {
-                    _isComposing = text.length > 0;
-                  });
-                },
-                onSubmitted: _handleSendMessage,
-                decoration: InputDecoration.collapsed(hintText: '发送消息'),
-              )),
-              Container(
-                margin: EdgeInsets.symmetric(horizontal: 4.0),
-                child: IconButton(
-                  icon: Icon(Icons.send),
-                    onPressed: _isComposing ?
-                        () => _handleSendMessage(_textController.text) : null
+                    controller: _textController,
+                    onChanged: (String text) {
+                      setState(() {
+                        _isComposing = text.length > 0;
+                      });
+                    },
+                    onSubmitted: _handleSendMessage,
+                    decoration: InputDecoration.collapsed(hintText: '发送消息'),
+                  ),
                 ),
-              )
-            ])));
+                Container(
+                  margin: EdgeInsets.symmetric(horizontal: 4.0),
+                  child: IconButton(
+                      icon: Icon(Icons.send),
+                      onPressed: _isComposing
+                          ? () => _handleSendMessage(_textController.text)
+                          : null),
+                ),
+                widget.isFromProduction
+                    ? Container(
+                        margin: EdgeInsets.symmetric(horizontal: 4.0),
+                        child: IconButton(
+                            icon: Icon(_extraInfo
+                                ? FontAwesomeIcons.minus
+                                : FontAwesomeIcons.plus),
+                            onPressed: () {
+                              setState(() {
+                                _extraInfo = !_extraInfo;
+                              });
+                            }),
+                      )
+                    : Container(
+                        width: 0.0,
+                        height: 0.0,
+                      ),
+              ],
+            ),
+            _extraInfo
+                ? Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: <Widget>[
+                      buildInfoCard(context, Icons.shopping_cart, "下单", () {
+                        _createOrder();
+                      }),
+                      buildInfoCard(context, Icons.add, "", null),
+                      buildInfoCard(context, Icons.add, "", null),
+                    ],
+                  )
+                : Container(
+                    width: 0.0,
+                    height: 0.0,
+                  ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget buildInfoCard(
+      BuildContext context, IconData icon, String text, VoidCallback callback) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 20.0),
+      child: GestureDetector(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: <Widget>[
+            Icon(icon),
+            Text(text),
+          ],
+        ),
+        onTap: callback,
+      ),
+    );
   }
 }
 
