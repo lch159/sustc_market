@@ -4,6 +4,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sustc_market/main.dart';
+import 'package:sustc_market/pages/SettingsChangePassword.dart';
 
 class SettingsPage extends StatefulWidget {
   @override
@@ -52,17 +53,39 @@ class _SettingsPageState extends State<SettingsPage> {
               children: <Widget>[
                 buildSingleRow(context, "个人资料", true, () {}),
                 buildSingleRow(context, "我的二维码", true, () {}),
-                buildSingleRow(context, "修改密码", false, () {}),
+                buildSingleRow(
+                  context,
+                  "修改密码",
+                  false,
+                  () {
+                    Navigator.of(context).push(new PageRouteBuilder(pageBuilder:
+                        (BuildContext context, Animation<double> animation,
+                            Animation<double> secondaryAnimation) {
+                      return new SettingsChangePasswordPage(
+                        name: _username,
+                      );
+                    }, transitionsBuilder: (
+                      BuildContext context,
+                      Animation<double> animation,
+                      Animation<double> secondaryAnimation,
+                      Widget child,
+                    ) {
+                      // 添加一个平移动画
+                      return createTransition(animation, child);
+                    }));
+                  },
+                ),
               ],
             ),
           ),
-          Card(child: Column(
-            children: <Widget>[
-              buildSingleRow(context, "登录设置", true, () {}),
-              buildSingleRow(context, "权限设置", false, () {}),
-            ],
-          ),),
-
+          Card(
+            child: Column(
+              children: <Widget>[
+                buildSingleRow(context, "登录设置", true, () {}),
+                buildSingleRow(context, "权限设置", false, () {}),
+              ],
+            ),
+          ),
           Card(
             child: Column(
               children: <Widget>[
@@ -148,32 +171,32 @@ class _SettingsPageState extends State<SettingsPage> {
     return Column(
       children: <Widget>[
         FlatButton(
-          child: Padding(
-            padding: EdgeInsets.symmetric(horizontal: 16.0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: <Widget>[
-                Text(
-                  text,
-                  style: TextStyle(color: Colors.black, fontSize: 17.0),
-                ),
-                RichText(
-                  text: TextSpan(
-                      text: "",
-                      style: TextStyle(fontSize: 17.0, color: Colors.black),
-                      children: <TextSpan>[
-                        TextSpan(
-                          text: "",
-                          style: TextStyle(fontSize: 17.0, color: Colors.black),
-                        ),
-                      ]),
-                ),
-                Icon(Icons.keyboard_arrow_right),
-              ],
+            child: Padding(
+              padding: EdgeInsets.symmetric(horizontal: 16.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: <Widget>[
+                  Text(
+                    text,
+                    style: TextStyle(color: Colors.black, fontSize: 17.0),
+                  ),
+                  RichText(
+                    text: TextSpan(
+                        text: "",
+                        style: TextStyle(fontSize: 17.0, color: Colors.black),
+                        children: <TextSpan>[
+                          TextSpan(
+                            text: "",
+                            style:
+                                TextStyle(fontSize: 17.0, color: Colors.black),
+                          ),
+                        ]),
+                  ),
+                  Icon(Icons.keyboard_arrow_right),
+                ],
+              ),
             ),
-          ),
-          onPressed: callback,
-        ),
+            onPressed: callback),
         isDivided
             ? Divider(
                 height: 10.0,
@@ -212,11 +235,6 @@ class InnerRow extends StatefulWidget {
 }
 
 class _InnerRowState extends State<InnerRow> {
-  double _leftMargin = 0.0;
-  double _topMargin = 10.0;
-  double _rightMargin = 0.0;
-  double _bottomMargin = 10.0;
-
   @override
   Widget build(BuildContext context) {
     // TODO: implement build

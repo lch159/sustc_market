@@ -4,6 +4,7 @@ import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sustc_market/pages/Chatting.dart';
+import 'package:sustc_market/pages/MyOrder.dart';
 import 'package:sustc_market/pages/MyPublish.dart';
 import 'package:sustc_market/pages/Production.dart';
 import 'package:sustc_market/pages/Search.dart';
@@ -48,8 +49,6 @@ class _MainPageState extends State<MainPage> {
 
   List<ItemRow> _items = new List<ItemRow>();
   List<MessageCard> _messageCardList = new List();
-
-//  List<String> _messageList = new List();
 
   var _isLogin = false;
   var _username = "";
@@ -173,90 +172,9 @@ class _MainPageState extends State<MainPage> {
     }
     newList.insert(
         0, source + "," + destination + "," + text + "," + time + "," + "true");
-    print("here4"+newList.toString());
+    print("here4" + newList.toString());
     preferences.setStringList(name, newList);
   }
-
-  void saveInCache(List<dynamic> records) async {
-    SharedPreferences preferences = await SharedPreferences.getInstance();
-    for (int i = 0; i < records.length; i++) {
-      print(records[i]);
-//      List<String> messagesDetails = preferences
-//          .getStringList(records["srcname"] + "_" + records["recvname"]);
-//      if (messagesDetails == null) {
-//        List<String> newMessageDetails = new List();
-//        DateTime time = stringParseToDate(records["time"]);
-//        newMessageDetails.insert(
-//            0,
-//            records["recvname"] +
-//                "," +
-//                records["message"] +
-//                "," +
-//                time.hour.toString() +
-//                ":" +
-//                time.minute.toString() +
-//                "," +
-//                true +
-//                "," +
-//                true);
-//        await preferences.setStringList(
-//            records["srcname"] + "_" + records["recvname"], newMessageDetails);
-//      }
-//
-//      List<String> messageNames = preferences.getStringList("messages");
-//      if (messageNames == null) {
-//        List<String> newMessagesNames = new List();
-//        newMessagesNames.add(records["srcname"] + "_" + records["recvname"]);
-//        preferences.setStringList("messages", newMessagesNames);
-//      } else if (!messageNames.contains(records["srcname"] + "_" + records["recvname"])) {
-//        messageNames.add(records["srcname"] + "_" + records["recvname"]);
-//        await preferences.setStringList("messages", messageNames);
-//      }
-    }
-  }
-
-//  void getUnreceivedMessages() async {
-//    String url = "http://120.79.232.137:8080/helloSSM/social/charRecord";
-//
-//    Dio dio = new Dio();
-//
-//    dio.interceptor.response.onSuccess = (Response response) {
-//      Map<String, dynamic> data = response.data;
-//
-//      if (data["returncode"] == "200") {
-//        List<dynamic> records = data["records"];
-//        saveInCache(records);
-//      }
-//    };
-//
-//    dio.post(url, data: FormData.from({"temporaryid": _temporaryid}));
-//  }
-
-//  void _readHistoryMessageInfo() async {
-//    _messages = new List();
-//
-//    SharedPreferences preferences = await SharedPreferences.getInstance();
-//    var messagesNames = preferences.getStringList("messages");
-//    if (messagesNames != null) {
-//      print(messagesNames.length);
-//      if (messagesNames.length != 0) {
-//        for (String name in messagesNames) {
-//          String sender = name.split("_")[0];
-//          print(sender);
-//          if (sender == preferences.getString("username")) {
-//            List<String> message = preferences.getStringList(name);
-//            setState(() {
-//              _messages.add(MessageCard(
-//                lastMessage: message[0].split(",")[1],
-//                lastTime: message[0].split(",")[2],
-//                receiverName: name.split("_")[1],
-//              ));
-//            });
-//          }
-//        }
-//      }
-//    }
-//  }
 
   Future<String> readLoginInfo() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -423,10 +341,10 @@ class _MainPageState extends State<MainPage> {
   }
 
   void remindLogin(BuildContext context) {
-    showDialog<Null>(
-      context: context,
-      builder: (BuildContext context) {
-        if (!_isLogin) {
+    if (!_isLogin) {
+      showDialog<Null>(
+        context: context,
+        builder: (BuildContext context) {
           return AlertDialog(
             title: Text("还未登录，点击确定进入登录页面"),
             actions: <Widget>[
@@ -440,9 +358,9 @@ class _MainPageState extends State<MainPage> {
               ),
             ],
           );
-        }
-      },
-    );
+        },
+      );
+    }
   }
 
   Drawer buildDrawer(BuildContext context) {
@@ -1096,8 +1014,24 @@ class _MainPageState extends State<MainPage> {
                   context,
                   "我的交易",
                   true,
-                  () {
-                    remindLogin(context);
+                      () {
+                    if (_isLogin) {
+                      Navigator.of(context).push(new PageRouteBuilder(pageBuilder:
+                          (BuildContext context, Animation<double> animation,
+                          Animation<double> secondaryAnimation) {
+                        return new MyOrderPage();
+                      }, transitionsBuilder: (
+                          BuildContext context,
+                          Animation<double> animation,
+                          Animation<double> secondaryAnimation,
+                          Widget child,
+                          ) {
+                        // 添加一个平移动画
+                        return createTransition(animation, child);
+                      }));
+                    } else {
+                      remindLogin(context);
+                    }
                   },
                 ),
                 buildSingleRow(context, "我发布的", true, () {
@@ -1395,6 +1329,7 @@ class MessageCard extends StatelessWidget {
               MaterialPageRoute(
                   builder: (context) => ChattingPage(
                         receiver: senderName,
+                        isFromProduction: false,
                       )));
         },
       ),

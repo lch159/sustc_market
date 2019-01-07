@@ -8,6 +8,12 @@ import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:flutter_cupertino_date_picker/flutter_cupertino_date_picker.dart';
 
 class SelectPage extends StatefulWidget {
+  const SelectPage({
+    Key key,
+    this.searchText,
+  }) : super(key: key);
+  final String searchText;
+
   @override
   State<StatefulWidget> createState() {
     return _SelectPageState();
@@ -57,12 +63,20 @@ class _SelectPageState extends State<SelectPage> {
     // TODO: implement initState
     super.initState();
     _items = new List<ProductionCard>();
+    if(widget.searchText==null){
+      upgradeItems(FormData.from({
+        "conditions": "",
+        "orders": "order by putawayTime desc",
+        "number": "limit 10"
+      }));
+    }else{
+      upgradeItems(FormData.from({
+        "conditions": "where name like "+"\'%"+widget.searchText+"%\'",
+        "orders": "order by putawayTime desc",
+        "number": "limit 10"
+      }));
+    }
 
-    upgradeItems(FormData.from({
-      "conditions": "",
-      "orders": "order by putawayTime desc",
-      "number": "limit 10"
-    }));
   }
 
   void upgradeItems(FormData formData) async {

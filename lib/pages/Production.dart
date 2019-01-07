@@ -396,11 +396,9 @@ class _ProductionPageState extends State<ProductionPage> {
             (BuildContext context, Animation<double> animation,
                 Animation<double> secondaryAnimation) {
           return new ChattingPage(
-//            channel: IOWebSocketChannel.connect(
-//                "ws://120.79.232.137:8080/helloSSM/webSocket"),
-//            channel: IOWebSocketChannel.connect(
-//                "ws://10.22.14.224:8080/helloSSM/webSocket"),
             receiver: widget.owner,
+            isFromProduction: true,
+            itemId: widget.id,
           );
         }, transitionsBuilder: (
           BuildContext context,

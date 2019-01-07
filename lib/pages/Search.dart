@@ -1,4 +1,6 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:sustc_market/pages/Select.dart';
 
 class SearchPage extends StatefulWidget {
   @override
@@ -14,6 +16,8 @@ class _SearchPageState extends State<SearchPage> {
   TextEditingController searchController = new TextEditingController();
   bool _hasdeleteIcon = false;
 
+
+
   @override
   void initState() {
     // TODO: implement initState
@@ -21,6 +25,9 @@ class _SearchPageState extends State<SearchPage> {
     _historyList = new List<HistoryRow>();
     super.initState();
   }
+
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -76,7 +83,21 @@ class _SearchPageState extends State<SearchPage> {
                       HistoryRow(
                         text: searchController.text,
                       ));
+                  Navigator.of(context).push(new PageRouteBuilder(pageBuilder:
+                      (BuildContext context, Animation<double> animation,
+                      Animation<double> secondaryAnimation) {
+                    return new SelectPage(searchText: searchController.text,);
+                  }, transitionsBuilder: (
+                      BuildContext context,
+                      Animation<double> animation,
+                      Animation<double> secondaryAnimation,
+                      Widget child,
+                      ) {
+                    // 添加一个平移动画
+                    return createTransition(animation, child);
+                  }));
                 }
+
               });
             },
             onChanged: (str) {
@@ -283,4 +304,14 @@ class _HistoryRowState extends State<HistoryRow> {
       ],
     );
   }
+}
+ SlideTransition createTransition(
+Animation<double> animation, Widget child) {
+return new SlideTransition(
+position: new Tween<Offset>(
+begin: const Offset(1.0, 0.0),
+end: const Offset(0.0, 0.0),
+).animate(animation),
+child: child,
+);
 }

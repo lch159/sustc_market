@@ -5,6 +5,21 @@ import 'package:flutter/material.dart';
 import 'package:sustc_market/main.dart';
 
 class RegisterPage extends StatefulWidget {
+  const RegisterPage({
+    Key key,
+    this.registerNameKey,
+    this.registerPasswordKey,
+    this.registerEmailKey,
+    this.registerButton,
+    this.registerCheck,
+  }) : super(key: key);
+
+  final GlobalKey registerNameKey;
+  final GlobalKey registerPasswordKey;
+  final GlobalKey registerEmailKey;
+  final GlobalKey registerButton;
+  final GlobalKey registerCheck;
+
   @override
   State<StatefulWidget> createState() {
     return _RegisterPageState();
@@ -72,7 +87,10 @@ class _RegisterPageState extends State<RegisterPage> {
             context: context,
             builder: (BuildContext context) {
               return AlertDialog(
-                title: Text('邮件发送成功，请前往学校邮箱查看,30s后可重新发送'),
+
+                title: Text(
+                  '邮件发送成功，请前往学校邮箱查看,30s后可重新发送',
+                ),
                 actions: <Widget>[
                   FlatButton(
                     child: Text('确定'),
@@ -88,24 +106,12 @@ class _RegisterPageState extends State<RegisterPage> {
               );
             },
           );
-
           new Future.delayed(const Duration(seconds: 30), () {
             setState(() {
               verifyText = "点击发送验证码";
               _isEdited = true;
             });
           });
-
-//          setState(() {
-//            _isEdited = false;
-//            for (int i = 30; i > -1; i--) {
-//              new Future.delayed(const Duration(seconds: 1), () {
-//                verifyText = i.toString() + "s后重新发送";
-//              });
-//            }
-//            _isEdited = true;
-//          });
-
         } else if (data['returncode'] == '201') {
           var textTitle = '';
           var textMessage = '';
@@ -297,6 +303,7 @@ class _RegisterPageState extends State<RegisterPage> {
 
   TextFormField buildNameTextField(BuildContext context) {
     return TextFormField(
+      key: widget.registerNameKey,
       controller: nameController,
       validator: (val) {
         return nameValidator(val);
@@ -318,6 +325,7 @@ class _RegisterPageState extends State<RegisterPage> {
 
   TextFormField buildPasswordTextField(BuildContext context) {
     return TextFormField(
+      key: widget.registerPasswordKey,
       controller: passwordController,
       validator: (val) {
         return passwordValidator(val);
@@ -385,6 +393,7 @@ class _RegisterPageState extends State<RegisterPage> {
       children: <Widget>[
         Expanded(
           child: TextFormField(
+            key: widget.registerEmailKey,
             controller: emailController,
             validator: (val) {
               return emailValidator(val);
@@ -447,6 +456,7 @@ class _RegisterPageState extends State<RegisterPage> {
         height: Theme.of(context).textTheme.display1.fontSize * 1.1 + 20,
       ),
       child: RaisedButton(
+        key: widget.registerButton,
         onPressed: () {
           _authSubmitted();
         },
